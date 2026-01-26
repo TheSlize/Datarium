@@ -1,11 +1,11 @@
-package com.slize.datarium;
+package com.example.modid;
 
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public class DatariumCoremod implements IFMLLoadingPlugin {
+public class ExampleLoadingPlugin implements IFMLLoadingPlugin {
     @Override
     public @Nullable String[] getASMTransformerClass() {
         return null;

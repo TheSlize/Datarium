@@ -1,10 +1,10 @@
-package {{ package }};
+package com.slize.datarium;
 
 /**
  * Tags storage class, you can change at will
  */
-public class Reference {
-    private Reference() {}
+public class Tags {
+    private Tags() {}
 
     public static final String MOD_ID = "{{ mod_id }}";
     public static final String MOD_NAME = "{{ mod_name }}";

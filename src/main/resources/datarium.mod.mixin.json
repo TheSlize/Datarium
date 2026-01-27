@@ -1,12 +1,10 @@
 {
   "required": true,
-  "package": "com.example.modid.mixin.mod",
-  "plugin": "com.example.modid.ModMixinConfigPlugin",
+  "package": "com.slize.datarium.mixin.mod",
+  "plugin": "com.slize.datarium.ModMixinConfigPlugin",
   "compatibilityLevel": "JAVA_8",
   "target": "@env(MOD)",
-  "client": [
-    "hei.JustEnoughItemsMixin"
-  ],
+  "client": [],
   "mixins": [],
   "server": [],
   "setSourceFile": true,

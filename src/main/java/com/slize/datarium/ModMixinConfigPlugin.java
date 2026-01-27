@@ -1,4 +1,4 @@
-package com.example.modid;
+package com.slize.datarium;
 
 import net.minecraftforge.fml.common.Loader;
 import org.objectweb.asm.tree.ClassNode;

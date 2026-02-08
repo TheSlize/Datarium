@@ -17,7 +17,7 @@ public class DatariumMain {
      */
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        LOGGER.info("Hello From {}!", Reference.MOD_NAME);
+
     }
 
 }

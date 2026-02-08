@@ -4,7 +4,21 @@
   "compatibilityLevel": "JAVA_8",
   "target": "@env(DEFAULT)",
   "client": [
-    "MinecraftMixin"
+    "IModelBlockAccessor",
+    "IAbstractResourcePackAccessor",
+    "MixinFontRenderer",
+    "MixinTextureMap",
+    "MixinTextureMapCEM",
+    "MixinTextureAtlasSprite",
+    "MixinBlockPartDeserializer",
+    "MixinModelBlock",
+    "MixinItemOverrideList",
+    "MixinModelBakery",
+    "MixinRenderItem",
+    "MixinRenderEntityItem",
+    "MixinModelRenderer",
+    "MixinRenderLivingBase",
+    "MixinLocale"
   ],
   "mixins": [],
   "server": [],

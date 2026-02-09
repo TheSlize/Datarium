@@ -14,18 +14,14 @@ public class CEMModelWrapper {
     private final Map<String, CEMModelRenderer> partRenderers;
     private final Map<String, ModelRenderer> vanillaPartBackup;
 
-    // Maps vanilla field names to CEM canonical names and vice versa
     private static final Map<String, String> FIELD_TO_CEM = new HashMap<>();
     private static final Map<String, String> CEM_TO_FIELD = new HashMap<>();
 
     static {
-        // Quadruped leg mappings
         addBidirectionalMapping("leg1", "right_hind_leg");
         addBidirectionalMapping("leg2", "left_hind_leg");
         addBidirectionalMapping("leg3", "right_front_leg");
         addBidirectionalMapping("leg4", "left_front_leg");
-
-        // Biped mappings
         addBidirectionalMapping("bipedHead", "head");
         addBidirectionalMapping("bipedHeadwear", "headwear");
         addBidirectionalMapping("bipedBody", "body");
@@ -33,8 +29,6 @@ public class CEMModelWrapper {
         addBidirectionalMapping("bipedLeftArm", "left_arm");
         addBidirectionalMapping("bipedRightLeg", "right_leg");
         addBidirectionalMapping("bipedLeftLeg", "left_leg");
-
-        // Villager mappings
         addBidirectionalMapping("villagerHead", "head");
         addBidirectionalMapping("villagerBody", "body");
         addBidirectionalMapping("villagerArms", "arms");
@@ -79,36 +73,28 @@ public class CEMModelWrapper {
             currentPath = parentPath != null ? parentPath + "." + partName : partName;
         }
 
-        // Register by id
         if (id != null) {
             partRenderers.put(id, renderer);
         }
 
-        // Register by part name
         if (partName != null) {
             partRenderers.put(partName, renderer);
 
-            // Also register by CEM canonical name if part uses a vanilla field name
             String cemCanonical = FIELD_TO_CEM.get(partName);
             if (cemCanonical != null && !partRenderers.containsKey(cemCanonical)) {
                 partRenderers.put(cemCanonical, renderer);
-                DatariumMain.LOGGER.debug("[CEM] Also registered '{}' as '{}'", partName, cemCanonical);
             }
 
-            // Also register by vanilla field name if part uses CEM canonical name
             String fieldName = CEM_TO_FIELD.get(partName);
             if (fieldName != null && !partRenderers.containsKey(fieldName)) {
                 partRenderers.put(fieldName, renderer);
-                DatariumMain.LOGGER.debug("[CEM] Also registered '{}' as '{}'", partName, fieldName);
             }
         }
 
-        // Register by full path
         if (currentPath != null && !currentPath.equals(id) && !currentPath.equals(partName)) {
             partRenderers.put(currentPath, renderer);
         }
 
-        // Recursively register children
         List<CEMModelRenderer> children = renderer.getCemChildren();
         for (int i = 0; i < children.size(); i++) {
             CEMModelRenderer child = children.get(i);
@@ -122,14 +108,12 @@ public class CEMModelWrapper {
         CEMModelRenderer result = partRenderers.get(partName);
         if (result != null) return result;
 
-        // Try CEM canonical name
         String cemName = FIELD_TO_CEM.get(partName);
         if (cemName != null) {
             result = partRenderers.get(cemName);
             if (result != null) return result;
         }
 
-        // Try vanilla field name
         String fieldName = CEM_TO_FIELD.get(partName);
         if (fieldName != null) {
             result = partRenderers.get(fieldName);
@@ -144,6 +128,18 @@ public class CEMModelWrapper {
             CEMModelRenderer renderer = getPartRenderer(entry.getKey());
             if (renderer != null) {
                 renderer.setTransform(entry.getValue());
+            }
+        }
+    }
+
+    public void renderDebug(float scale) {
+        // Only iterate over root parts defined in the CEM model
+        for (CEMModelPart part : cemModel.parts) {
+            // Find the renderer corresponding to this root part
+            String key = part.id != null ? part.id : part.part;
+            CEMModelRenderer renderer = getPartRenderer(key);
+            if (renderer != null) {
+                renderer.renderDebugOnly(scale);
             }
         }
     }

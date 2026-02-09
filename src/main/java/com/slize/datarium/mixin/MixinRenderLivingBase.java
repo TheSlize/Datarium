@@ -92,7 +92,6 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
             CEMModelRenderer replacement = wrapper.getPartRenderer(partName);
             if (replacement != null) {
                 CEMModelPart cemPart = replacement.getCemPart();
-                // If it's a child part (has parent and not attached directly), hide vanilla
                 boolean isChildReplacement = (cemPart.parent != null && !replacement.isAttached());
 
                 if (isChildReplacement) {
@@ -113,7 +112,6 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
         if (state != null) {
             CEMPartTransform rootTransform = state.transforms.get("root");
             if (rootTransform != null) {
-                // Apply root transform to the global model matrix
                 GlStateManager.translate(rootTransform.translateX * scaleFactor, rootTransform.translateY * scaleFactor, rootTransform.translateZ * scaleFactor);
 
                 if (rootTransform.hasRotateZ) GlStateManager.rotate((float)Math.toDegrees(rootTransform.rotateZ), 0, 0, 1);
@@ -124,6 +122,15 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
                     GlStateManager.scale(rootTransform.scaleX, rootTransform.scaleY, rootTransform.scaleZ);
                 }
             }
+        }
+    }
+
+    @Inject(method = "renderModel", at = @At("RETURN"))
+    private void datarium$onRenderModelReturn(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, CallbackInfo ci) {
+        CEMModelWrapper wrapper = CEMRenderHooks.getActiveWrapper();
+        if (wrapper != null) {
+            // Render debug overlay AFTER main model, which allows it to appear on top
+            wrapper.renderDebug(scaleFactor);
         }
     }
 

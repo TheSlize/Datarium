@@ -15,7 +15,6 @@ public class CEMManager {
     private static final Map<String, CEMAnimator> animatorCache = new ConcurrentHashMap<>();
     private static final Map<String, CEMModelWrapper> wrapperCache = new ConcurrentHashMap<>();
     private static final Map<Long, CEMRenderState> entityStates = new ConcurrentHashMap<>();
-    private static boolean loaded = false;
 
     private static final Map<String, String> ENTITY_MODEL_MAP = new HashMap<>();
 
@@ -67,30 +66,10 @@ public class CEMManager {
         ENTITY_MODEL_MAP.put("EntityGiantZombie", "giant");
     }
 
-    public static void reload() {
-        modelCache.clear();
-        animatorCache.clear();
-        wrapperCache.clear();
-        entityStates.clear();
-        loaded = true;
-        DatariumMain.LOGGER.info("[CEM] Manager reloaded");
-    }
-
     public static void invalidate() {
-        loaded = false;
         modelCache.clear();
         animatorCache.clear();
         wrapperCache.clear();
-    }
-
-    @Nullable
-    public static CEMModel getModelForEntity(Entity entity) {
-        if (!loaded) {
-            reload();
-        }
-        String modelName = getModelNameForEntity(entity);
-        if (modelName == null) return null;
-        return getModel(modelName);
     }
 
     @Nullable
@@ -168,7 +147,4 @@ public class CEMManager {
         return ENTITY_MODEL_MAP.get(entityName);
     }
 
-    public static boolean isLoaded() {
-        return loaded;
-    }
 }

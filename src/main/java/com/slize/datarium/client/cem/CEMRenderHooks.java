@@ -20,6 +20,9 @@ public class CEMRenderHooks {
 
     public static void setActiveWrapper(@Nullable CEMModelWrapper wrapper) {
         activeWrapper.set(wrapper);
+        if (wrapper != null) {
+            CEMDebugSystem.updateAvailableParts(wrapper.getAllParts().keySet());
+        }
     }
 
     @Nullable
@@ -37,21 +40,6 @@ public class CEMRenderHooks {
         activeModelName.remove();
         activeContext.remove();
         activeState.remove();
-    }
-
-    public static void setActiveTransforms(Map<String, CEMPartTransform> transforms) {
-        activeTransforms.set(transforms);
-    }
-
-    @Nullable
-    public static Map<String, CEMPartTransform> getActiveTransforms() {
-        return activeTransforms.get();
-    }
-
-    @Nullable
-    public static CEMPartTransform getTransform(String partId) {
-        Map<String, CEMPartTransform> transforms = activeTransforms.get();
-        return transforms != null ? transforms.get(partId) : null;
     }
 
     public static void setActivePartMap(Map<String, ModelRenderer> partMap) {
@@ -77,18 +65,8 @@ public class CEMRenderHooks {
         activeEntity.set(entity);
     }
 
-    @Nullable
-    public static EntityLivingBase getActiveEntity() {
-        return activeEntity.get();
-    }
-
     public static void setActivePartialTicks(float partialTicks) {
         activePartialTicks.set(partialTicks);
-    }
-
-    public static float getActivePartialTicks() {
-        Float pt = activePartialTicks.get();
-        return pt != null ? pt : 0f;
     }
 
     public static void setActiveModelName(String name) {
@@ -104,11 +82,6 @@ public class CEMRenderHooks {
         activeContext.set(context);
     }
 
-    @Nullable
-    public static CEMRenderContext getActiveContext() {
-        return activeContext.get();
-    }
-
     public static void setActiveState(CEMRenderState state) {
         activeState.set(state);
     }
@@ -116,18 +89,5 @@ public class CEMRenderHooks {
     @Nullable
     public static CEMRenderState getActiveState() {
         return activeState.get();
-    }
-
-    @Nullable
-    public static String getPartNameForRenderer(ModelRenderer renderer) {
-        Map<String, ModelRenderer> partMap = activePartMap.get();
-        if (partMap == null) return null;
-
-        for (Map.Entry<String, ModelRenderer> entry : partMap.entrySet()) {
-            if (entry.getValue() == renderer) {
-                return entry.getKey();
-            }
-        }
-        return null;
     }
 }

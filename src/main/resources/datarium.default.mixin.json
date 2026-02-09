@@ -11,6 +11,7 @@
     "MixinTextureMapCEM",
     "MixinTextureAtlasSprite",
     "MixinBlockPartDeserializer",
+    "MixinMinecraftDebug",
     "MixinModelBlock",
     "MixinItemOverrideList",
     "MixinModelBakery",

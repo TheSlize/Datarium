@@ -69,18 +69,15 @@ public class CEMModelRenderer extends ModelRenderer {
         }
 
         // Calculate relative offset for ModelRenderer translation
-        this.defaultOffsetX = this.absPivotX;
-        this.defaultOffsetY = this.absPivotY;
-        this.defaultOffsetZ = this.absPivotZ;
-        /*if (parent != null) {
-            this.defaultOffsetX = this.absPivotX - parent.absPivotX;
-            this.defaultOffsetY = this.absPivotY - parent.absPivotY;
-            this.defaultOffsetZ = this.absPivotZ - parent.absPivotZ;
+        if(cemPart.id.equals("l_eye_white") || cemPart.id.equals("r_eye_white")) {
+            this.defaultOffsetX = invXTrans;
+            this.defaultOffsetY = invYTrans;
+            this.defaultOffsetZ = invZTrans;
         } else {
             this.defaultOffsetX = this.absPivotX;
             this.defaultOffsetY = this.absPivotY;
             this.defaultOffsetZ = this.absPivotZ;
-        }*/
+        }
 
         // Initial Rotations (Standard ModelRenderer behavior)
         this.defaultRotateX = (float) Math.toRadians(cemPart.rotate[0]);
@@ -159,11 +156,11 @@ public class CEMModelRenderer extends ModelRenderer {
         applyTransforms(scale);
 
         // Render debug using absolute pivot info
-        renderDebugInternals(scale);
+        if(CEMDebugSystem.enabled) renderDebugInternals(scale);
 
         // Recurse
         for (CEMModelRenderer child : cemChildren) {
-            child.renderDebugOnly(scale);
+            if(CEMDebugSystem.enabled) child.renderDebugOnly(scale);
         }
 
         GlStateManager.popMatrix();
@@ -266,13 +263,23 @@ public class CEMModelRenderer extends ModelRenderer {
                 if (invY) by = -(by + bh);
                 if (invZ) bz = -(bz + bd);
 
-                // Local = Abs - AbsPivot
-                float x1 = (bx - inflate + absPivotX) * scale;
-                float y1 = (by - inflate + absPivotY) * scale;
-                float z1 = (bz - inflate + absPivotZ) * scale;
-                float x2 = (bx + bw + inflate + absPivotX) * scale;
-                float y2 = (by + bh + inflate + absPivotY) * scale;
-                float z2 = (bz + bd + inflate + absPivotZ) * scale;
+                float x1, y1, z1, x2, y2, z2;
+                if(cemPart.id.equals("l_eye_white") || cemPart.id.equals("r_eye_white")
+                        || cemPart.id.equals("l_pupil") || cemPart.id.equals("r_pupil")) {
+                    x1 = (bx - inflate) * scale;
+                    y1 = (by - inflate) * scale;
+                    z1 = (bz - inflate) * scale;
+                    x2 = (bx + bw + inflate) * scale;
+                    y2 = (by + bh + inflate) * scale;
+                    z2 = (bz + bd + inflate) * scale;
+                } else {
+                    x1 = (bx - inflate + absPivotX) * scale;
+                    y1 = (by - inflate + absPivotY) * scale;
+                    z1 = (bz - inflate + absPivotZ) * scale;
+                    x2 = (bx + bw + inflate + absPivotX) * scale;
+                    y2 = (by + bh + inflate + absPivotY) * scale;
+                    z2 = (bz + bd + inflate + absPivotZ) * scale;
+                }
 
                 drawBoxWireframe(b, x1, y1, z1, x2, y2, z2);
             }
@@ -441,20 +448,26 @@ public class CEMModelRenderer extends ModelRenderer {
             float d = box.coordinates[5];
             float inflate = box.sizeAdd;
 
-            // Inverted Axis Logic for Box Coordinates (Standard Optifine)
             if (invX) x = -(x + w);
             if (invY) y = -(y + h);
             if (invZ) z = -(z + d);
-
-            // JPM Coordinates are Global/Absolute.
-            // We are currently rendering in Local Space (Matrix translated by relative offset).
-            // To get local box coordinates: Local = Global - AbsPivot.
-            float x1 = (x - inflate + absPivotX) * scale;
-            float y1 = (y - inflate + absPivotY) * scale;
-            float z1 = (z - inflate + absPivotZ) * scale;
-            float x2 = (x + w + inflate + absPivotX) * scale;
-            float y2 = (y + h + inflate + absPivotY) * scale;
-            float z2 = (z + d + inflate + absPivotZ) * scale;
+            float x1, y1, z1, x2, y2, z2;
+            if(cemPart.id.equals("l_eye_white") || cemPart.id.equals("r_eye_white")
+                    || cemPart.id.equals("l_pupil") || cemPart.id.equals("r_pupil")) {
+                x1 = (x - inflate) * scale;
+                y1 = (y - inflate) * scale;
+                z1 = (z - inflate) * scale;
+                x2 = (x + w + inflate) * scale;
+                y2 = (y + h + inflate) * scale;
+                z2 = (z + d + inflate) * scale;
+            } else {
+                x1 = (x - inflate + absPivotX) * scale;
+                y1 = (y - inflate + absPivotY) * scale;
+                z1 = (z - inflate + absPivotZ) * scale;
+                x2 = (x + w + inflate + absPivotX) * scale;
+                y2 = (y + h + inflate + absPivotY) * scale;
+                z2 = (z + d + inflate + absPivotZ) * scale;
+            }
 
             boolean mirrorU = cemPart.mirrorTexture.contains("u");
 

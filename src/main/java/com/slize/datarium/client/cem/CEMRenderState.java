@@ -26,10 +26,7 @@ public class CEMRenderState {
     }
 
     public void saveOriginalState(String partName, ModelRenderer renderer) {
-        if (!originalStates.containsKey(partName)) {
-            originalStates.put(partName, new OriginalPartState());
-        }
-        OriginalPartState state = originalStates.get(partName);
+        OriginalPartState state = originalStates.computeIfAbsent(partName, k -> new OriginalPartState());
         state.rotateAngleX = renderer.rotateAngleX;
         state.rotateAngleY = renderer.rotateAngleY;
         state.rotateAngleZ = renderer.rotateAngleZ;

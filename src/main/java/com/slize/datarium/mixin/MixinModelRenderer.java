@@ -34,7 +34,7 @@ public class MixinModelRenderer {
             } else {
                 // Replaced: We render INSTEAD
                 // Pass the VANILLA rotation points so CEM can calculate offsets correctly
-                replacement.renderWithVanilla(scale, this.rotationPointX, this.rotationPointY, this.rotationPointZ);
+                replacement.renderWithVanilla(scale);
                 ci.cancel(); // Skip vanilla rendering
             }
         }
@@ -44,7 +44,7 @@ public class MixinModelRenderer {
     private void datarium$onRenderReturn(float scale, CallbackInfo ci) {
         CEMModelRenderer replacement = CEMRenderHooks.getReplacement((ModelRenderer)(Object)this);
         if (replacement != null && replacement.isAttached()) {
-            replacement.renderWithVanilla(scale, this.rotationPointX, this.rotationPointY, this.rotationPointZ);
+            replacement.renderWithVanilla(scale);
         }
     }
 }

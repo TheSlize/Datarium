@@ -23,13 +23,21 @@ public class CEMModelRenderer extends ModelRenderer {
     private final List<CEMModelRenderer> cemChildren;
     private CEMPartTransform transform;
 
-    // Computed pivot point (after invertAxis processing)
-    private float pivotX, pivotY, pivotZ;
+    // Absolute pivot point in Global Model Space (Minecraft Y-down)
+    private final float absPivotX;
+    private final float absPivotY;
+    private final float absPivotZ;
+
+    // Relative offset from parent pivot (This is what Vanilla ModelRenderer uses for rotationPoint)
+    private final float defaultOffsetX;
+    private final float defaultOffsetY;
+    private final float defaultOffsetZ;
+    private float defaultRotateX, defaultRotateY, defaultRotateZ;
 
     // Buffer to save texture state without GC overhead
     private static final IntBuffer TEXTURE_BUF = BufferUtils.createIntBuffer(16);
 
-    public CEMModelRenderer(ModelBase model, CEMModelPart cemPart, int texWidth, int texHeight) {
+    public CEMModelRenderer(ModelBase model, CEMModelPart cemPart, int texWidth, int texHeight, @Nullable CEMModelRenderer parent) {
         super(model);
         this.cemPart = cemPart;
         this.textureWidth = texWidth;
@@ -37,25 +45,63 @@ public class CEMModelRenderer extends ModelRenderer {
         this.cemChildren = new ArrayList<>();
         this.transform = null;
 
-        // Process invertAxis for the pivot point (translate)
+        // Process invertAxis for the translation values
         boolean invX = cemPart.invertAxis.contains("x");
         boolean invY = cemPart.invertAxis.contains("y");
         boolean invZ = cemPart.invertAxis.contains("z");
 
-        this.pivotX = invX ? -cemPart.translate[0] : cemPart.translate[0];
-        this.pivotY = invY ? -cemPart.translate[1] : cemPart.translate[1];
-        this.pivotZ = invZ ? -cemPart.translate[2] : cemPart.translate[2];
+        // Apply invertAxis to the translation values first
+        float invXTrans = invX ? -cemPart.translate[0] : cemPart.translate[0];
+        float invYTrans = invY ? -cemPart.translate[1] : cemPart.translate[1];
+        float invZTrans = invZ ? -cemPart.translate[2] : cemPart.translate[2];
 
-        // Set initial values
-        this.rotationPointX = pivotX;
-        this.rotationPointY = pivotY;
-        this.rotationPointZ = pivotZ;
-        this.rotateAngleX = (float) Math.toRadians(cemPart.rotate[0]);
-        this.rotateAngleY = (float) Math.toRadians(cemPart.rotate[1]);
-        this.rotateAngleZ = (float) Math.toRadians(cemPart.rotate[2]);
+        // Calculate absolute pivot point based on parent
+        if (parent == null) {
+            // For top-level parts, translation is absolute
+            this.absPivotX = invXTrans;
+            this.absPivotY = invYTrans;
+            this.absPivotZ = invZTrans;
+        } else {
+            // For child parts, translation is relative to parent
+            this.absPivotX = parent.absPivotX + invXTrans;
+            this.absPivotY = parent.absPivotY + invYTrans;
+            this.absPivotZ = parent.absPivotZ + invZTrans;
+        }
+
+        // Calculate relative offset for ModelRenderer translation
+        this.defaultOffsetX = this.absPivotX;
+        this.defaultOffsetY = this.absPivotY;
+        this.defaultOffsetZ = this.absPivotZ;
+        /*if (parent != null) {
+            this.defaultOffsetX = this.absPivotX - parent.absPivotX;
+            this.defaultOffsetY = this.absPivotY - parent.absPivotY;
+            this.defaultOffsetZ = this.absPivotZ - parent.absPivotZ;
+        } else {
+            this.defaultOffsetX = this.absPivotX;
+            this.defaultOffsetY = this.absPivotY;
+            this.defaultOffsetZ = this.absPivotZ;
+        }*/
+
+        // Initial Rotations (Standard ModelRenderer behavior)
+        this.defaultRotateX = (float) Math.toRadians(cemPart.rotate[0]);
+        this.defaultRotateY = (float) Math.toRadians(cemPart.rotate[1]);
+        this.defaultRotateZ = (float) Math.toRadians(cemPart.rotate[2]);
+
+        // Apply invertAxis to rotations as well
+        if (invX) this.defaultRotateX = -this.defaultRotateX;
+        if (invY) this.defaultRotateY = -this.defaultRotateY;
+        if (invZ) this.defaultRotateZ = -this.defaultRotateZ;
+
+        // Set initial values for Vanilla ModelRenderer fields
+        this.rotationPointX = defaultOffsetX;
+        this.rotationPointY = defaultOffsetY;
+        this.rotationPointZ = defaultOffsetZ;
+        this.rotateAngleX = defaultRotateX;
+        this.rotateAngleY = defaultRotateY;
+        this.rotateAngleZ = defaultRotateZ;
 
         for (CEMModelPart sub : cemPart.submodels) {
-            CEMModelRenderer childRenderer = new CEMModelRenderer(model, sub, texWidth, texHeight);
+            CEMModelRenderer childRenderer = new CEMModelRenderer(model, sub, texWidth, texHeight, this);
             cemChildren.add(childRenderer);
         }
     }
@@ -78,10 +124,10 @@ public class CEMModelRenderer extends ModelRenderer {
 
     @Override
     public void render(float scale) {
-        renderWithVanilla(scale, 0, 0, 0);
+        renderWithVanilla(scale);
     }
 
-    public void renderWithVanilla(float scale, float vanillaX, float vanillaY, float vanillaZ) {
+    public void renderWithVanilla(float scale) {
         if (!this.showModel) return;
         if (transform != null && transform.hasVisible && !transform.visible) return;
 
@@ -90,6 +136,7 @@ public class CEMModelRenderer extends ModelRenderer {
         applyTransforms(scale);
 
         // --- Render Geometry ---
+        // Boxes must be rendered relative to the CURRENT local origin (which is at absPivot)
         boolean invX = cemPart.invertAxis.contains("x");
         boolean invY = cemPart.invertAxis.contains("y");
         boolean invZ = cemPart.invertAxis.contains("z");
@@ -97,7 +144,7 @@ public class CEMModelRenderer extends ModelRenderer {
 
         // --- Render Children ---
         for (CEMModelRenderer child : cemChildren) {
-            child.renderWithVanilla(scale, 0, 0, 0);
+            child.renderWithVanilla(scale);
         }
 
         GlStateManager.popMatrix();
@@ -105,37 +152,14 @@ public class CEMModelRenderer extends ModelRenderer {
 
     /**
      * Separate render pass for debug info.
-     * Called after the main model render is complete.
      */
     public void renderDebugOnly(float scale) {
-        String partName = cemPart.id != null ? cemPart.id : cemPart.part;
-        boolean isSelected = CEMDebugSystem.isSelected(partName);
-        float tx, ty, tz;
-        if (transform != null && transform.hasTranslateX) {
-            tx = transform.translateX;
-        } else {
-            tx = pivotX;
-        }
-        if (transform != null && transform.hasTranslateY) {
-            ty = transform.translateY;
-        } else {
-            ty = pivotY;
-        }
-        if (transform != null && transform.hasTranslateZ) {
-            tz = transform.translateZ;
-        } else {
-            tz = pivotZ;
-        }
-
-        if (!this.showModel && !isSelected) {
-        }
-
         GlStateManager.pushMatrix();
 
         applyTransforms(scale);
 
-        // Render this part's debug info
-        renderDebugInternals(scale, tx, ty, tz);
+        // Render debug using absolute pivot info
+        renderDebugInternals(scale);
 
         // Recurse
         for (CEMModelRenderer child : cemChildren) {
@@ -146,58 +170,32 @@ public class CEMModelRenderer extends ModelRenderer {
     }
 
     private void applyTransforms(float scale) {
-        boolean invX = cemPart.invertAxis.contains("x");
-        boolean invY = cemPart.invertAxis.contains("y");
-        boolean invZ = cemPart.invertAxis.contains("z");
-
         // --- Translation ---
-        float tx, ty, tz;
+        // Start with default relative offset (Calculated Pivot)
+        float tx = defaultOffsetX;
+        float ty = defaultOffsetY;
+        float tz = defaultOffsetZ;
 
-        if (transform != null && transform.hasTranslateX) {
-            tx = transform.translateX;
-        } else {
-            tx = cemPart.translate[0];
-            if (invX) tx = -tx;
-        }
-
-        if (transform != null && transform.hasTranslateY) {
-            ty = transform.translateY;
-        } else {
-            ty = cemPart.translate[1];
-            if (invY) ty = -ty;
-        }
-
-        if (transform != null && transform.hasTranslateZ) {
-            tz = transform.translateZ;
-        } else {
-            tz = cemPart.translate[2];
-            if (invZ) tz = -tz;
+        // Add Animation Transforms (Offsets)
+        // Optifine animations for translation are offsets added to the base pivot
+        if (transform != null) {
+            if (transform.hasTranslateX) tx = transform.translateX;
+            if (transform.hasTranslateY) ty = transform.translateY;
+            if (transform.hasTranslateZ) tz = transform.translateZ;
         }
 
         GlStateManager.translate(tx * scale, ty * scale, tz * scale);
 
         // --- Rotation ---
-        float rx, ry, rz;
+        // Rotations are typically replacements
+        float rx = defaultRotateX;
+        float ry = defaultRotateY;
+        float rz = defaultRotateZ;
 
-        if (transform != null && transform.hasRotateX) {
-            rx = transform.rotateX;
-        } else {
-            rx = (float) Math.toRadians(cemPart.rotate[0]);
-            if (invX) rx = -rx;
-        }
-
-        if (transform != null && transform.hasRotateY) {
-            ry = transform.rotateY;
-        } else {
-            ry = (float) Math.toRadians(cemPart.rotate[1]);
-            if (invY) ry = -ry;
-        }
-
-        if (transform != null && transform.hasRotateZ) {
-            rz = transform.rotateZ;
-        } else {
-            rz = (float) Math.toRadians(cemPart.rotate[2]);
-            if (invZ) rz = -rz;
+        if (transform != null) {
+            if (transform.hasRotateX) rx = transform.rotateX;
+            if (transform.hasRotateY) ry = transform.rotateY;
+            if (transform.hasRotateZ) rz = transform.rotateZ;
         }
 
         if (rz != 0.0F) GlStateManager.rotate((float) Math.toDegrees(rz), 0.0F, 0.0F, 1.0F);
@@ -222,7 +220,7 @@ public class CEMModelRenderer extends ModelRenderer {
         }
     }
 
-    private void renderDebugInternals(float scale, float currentPivotX, float currentPivotY, float currentPivotZ) {
+    private void renderDebugInternals(float scale) {
         String partName = cemPart.id != null ? cemPart.id : cemPart.part;
         boolean isSelected = CEMDebugSystem.isSelected(partName);
 
@@ -268,53 +266,24 @@ public class CEMModelRenderer extends ModelRenderer {
                 if (invY) by = -(by + bh);
                 if (invZ) bz = -(bz + bd);
 
-                float x1 = (bx - inflate + pivotX) * scale;
-                float y1 = (by - inflate + pivotY) * scale;
-                float z1 = (bz - inflate + pivotZ) * scale;
-                float x2 = (bx + bw + inflate + pivotX) * scale;
-                float y2 = (by + bh + inflate + pivotY) * scale;
-                float z2 = (bz + bd + inflate + pivotZ) * scale;
+                // Local = Abs - AbsPivot
+                float x1 = (bx - inflate + absPivotX) * scale;
+                float y1 = (by - inflate + absPivotY) * scale;
+                float z1 = (bz - inflate + absPivotZ) * scale;
+                float x2 = (bx + bw + inflate + absPivotX) * scale;
+                float y2 = (by + bh + inflate + absPivotY) * scale;
+                float z2 = (bz + bd + inflate + absPivotZ) * scale;
 
-                // 12 edges of the box
-                // Bottom face
-                b.pos(x1, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x1, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x1, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x1, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                // Top face
-                b.pos(x1, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x1, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x1, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x1, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                // Vertical edges
-                b.pos(x1, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x1, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x2, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x1, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex();
-                b.pos(x1, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
+                drawBoxWireframe(b, x1, y1, z1, x2, y2, z2);
             }
         }
 
         // Bones to children
         for (CEMModelRenderer child : cemChildren) {
-            float childTx = child.pivotX;
-            float childTy = child.pivotY;
-            float childTz = child.pivotZ;
-
-            float cx = (childTx - currentPivotX) * scale;
-            float cy = (childTy - currentPivotY) * scale;
-            float cz = (childTz - currentPivotZ) * scale;
+            // Child position relative to current part is simply its defaultOffset
+            float cx = child.defaultOffsetX * scale;
+            float cy = child.defaultOffsetY * scale;
+            float cz = child.defaultOffsetZ * scale;
 
             b.pos(0, 0, 0).color(1f, 1f, 0f, 0.8f).endVertex();
             b.pos(cx, cy, cz).color(1f, 1f, 0f, 0.8f).endVertex();
@@ -323,17 +292,17 @@ public class CEMModelRenderer extends ModelRenderer {
 
         if (partName != null && !partName.isEmpty()) {
             GlStateManager.enableTexture2D();
-
             List<String> lines = new ArrayList<>();
             lines.add((isSelected ? ">> " : "") + partName);
 
             if (isSelected) {
+
                 float dispRx = (float) Math.toRadians(cemPart.rotate[0]);
                 float dispRy = (float) Math.toRadians(cemPart.rotate[1]);
                 float dispRz = (float) Math.toRadians(cemPart.rotate[2]);
-                float dispTx = pivotX;
-                float dispTy = pivotY;
-                float dispTz = pivotZ;
+                float dispTx = absPivotX;
+                float dispTy = absPivotY;
+                float dispTz = absPivotZ;
                 float dispSx = 1f, dispSy = 1f, dispSz = 1f;
 
                 if (transform != null) {
@@ -348,7 +317,8 @@ public class CEMModelRenderer extends ModelRenderer {
                     if (transform.hasScaleZ) dispSz = transform.scaleZ;
                 }
 
-                lines.add(String.format("Pivot (raw): %.1f, %.1f, %.1f", cemPart.translate[0], cemPart.translate[1], cemPart.translate[2]));
+                lines.add(String.format("AbsPivot: %.1f, %.1f, %.1f", absPivotX, absPivotY, absPivotZ));
+                lines.add(String.format("RelOffset: %.1f, %.1f, %.1f", defaultOffsetX, defaultOffsetY, defaultOffsetZ));
                 lines.add(String.format("Pivot (eff): %.2f, %.2f, %.2f", dispTx, dispTy, dispTz));
                 lines.add(String.format("Rot: %.1f, %.1f, %.1f", Math.toDegrees(dispRx), Math.toDegrees(dispRy), Math.toDegrees(dispRz)));
                 lines.add(String.format("Scl: %.2f, %.2f, %.2f", dispSx, dispSy, dispSz));
@@ -370,22 +340,6 @@ public class CEMModelRenderer extends ModelRenderer {
                     lines.add("Parent: " + (cemPart.parent.id != null ? cemPart.parent.id : cemPart.parent.part));
                 }
                 lines.add("Children: " + cemChildren.size());
-                if(!cemChildren.isEmpty()) {
-                    for (CEMModelRenderer child : cemChildren) {
-                        float transfX = 0, transfY = 0, transfZ = 0;
-                        if(transform != null) {
-                            transfX = transform.translateX;
-                            transfY = transform.translateY;
-                            transfZ = transform.translateZ;
-                        }
-                        lines.add("Child " + cemChildren.indexOf(child) + " : " +
-                                child.getCemPart().translate[0] + " " +
-                                child.getCemPart().translate[1] + " " +
-                                child.getCemPart().translate[2] + " " +
-                                String.format("%.2f,%.2f,%.2f", transfX, transfY, transfZ)
-                        );
-                    }
-                }
             }
 
             renderFloatingText(lines, isSelected ? 0xFF55FF55 : 0xFFFFFFFF, isSelected);
@@ -401,6 +355,24 @@ public class CEMModelRenderer extends ModelRenderer {
         GlStateManager.popMatrix();
     }
 
+    private void drawBoxWireframe(BufferBuilder b, float x1, float y1, float z1, float x2, float y2, float z2) {
+        // Bottom
+        b.pos(x1, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x2, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex();
+        b.pos(x2, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x2, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex();
+        b.pos(x2, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x1, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex();
+        b.pos(x1, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x1, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex();
+        // Top
+        b.pos(x1, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x2, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
+        b.pos(x2, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x2, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
+        b.pos(x2, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x1, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
+        b.pos(x1, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x1, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
+        // Vertical
+        b.pos(x1, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x1, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
+        b.pos(x2, y1, z1).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x2, y2, z1).color(0f, 1f, 1f, 0.8f).endVertex();
+        b.pos(x2, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x2, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
+        b.pos(x1, y1, z2).color(0f, 1f, 1f, 0.8f).endVertex(); b.pos(x1, y2, z2).color(0f, 1f, 1f, 0.8f).endVertex();
+    }
+
     private void renderFloatingText(List<String> lines, int color, boolean detailed) {
         Minecraft mc = Minecraft.getMinecraft();
         FontRenderer fr = mc.fontRenderer;
@@ -409,7 +381,7 @@ public class CEMModelRenderer extends ModelRenderer {
         GlStateManager.pushMatrix();
         GlStateManager.translate(0, -0.1f, 0);
 
-        GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(mc.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate((float)(mc.getRenderManager().options.thirdPersonView == 2 ? -1 : 1) * mc.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
 
         GlStateManager.scale(-tagScale, tagScale, tagScale);
@@ -469,17 +441,20 @@ public class CEMModelRenderer extends ModelRenderer {
             float d = box.coordinates[5];
             float inflate = box.sizeAdd;
 
-            // Inverted Axis Logic
-            if (invX) x = -(x + w );
+            // Inverted Axis Logic for Box Coordinates (Standard Optifine)
+            if (invX) x = -(x + w);
             if (invY) y = -(y + h);
             if (invZ) z = -(z + d);
 
-            float x1 = (x - inflate + pivotX) * scale;
-            float y1 = (y - inflate + pivotY) * scale;
-            float z1 = (z - inflate + pivotZ) * scale;
-            float x2 = (x + w + inflate + pivotX) * scale;
-            float y2 = (y + h + inflate + pivotY) * scale;
-            float z2 = (z + d + inflate + pivotZ) * scale;
+            // JPM Coordinates are Global/Absolute.
+            // We are currently rendering in Local Space (Matrix translated by relative offset).
+            // To get local box coordinates: Local = Global - AbsPivot.
+            float x1 = (x - inflate + absPivotX) * scale;
+            float y1 = (y - inflate + absPivotY) * scale;
+            float z1 = (z - inflate + absPivotZ) * scale;
+            float x2 = (x + w + inflate + absPivotX) * scale;
+            float y2 = (y + h + inflate + absPivotY) * scale;
+            float z2 = (z + d + inflate + absPivotZ) * scale;
 
             boolean mirrorU = cemPart.mirrorTexture.contains("u");
 

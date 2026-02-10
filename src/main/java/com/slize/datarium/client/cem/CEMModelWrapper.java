@@ -55,11 +55,12 @@ public class CEMModelWrapper {
         int texH = cemModel.textureSize[1];
 
         for (CEMModelPart part : cemModel.parts) {
-            CEMModelRenderer renderer = new CEMModelRenderer(vanillaModel, part, texW, texH);
+            // Pass null as parent for root parts
+            CEMModelRenderer renderer = new CEMModelRenderer(vanillaModel, part, texW, texH, null);
             registerRendererRecursive(renderer, part, null);
         }
 
-        DatariumMain.LOGGER.info("[CEM] Registered {} part renderers: {}", partRenderers.size(), partRenderers.keySet());
+        DatariumMain.LOGGER.info("[CEM] Registered {} part   renderers: {}", partRenderers.size(), partRenderers.keySet());
     }
 
     private void registerRendererRecursive(CEMModelRenderer renderer, CEMModelPart part, @Nullable String parentPath) {

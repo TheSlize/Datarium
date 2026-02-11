@@ -22,6 +22,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,6 +31,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(FontRenderer.class)
@@ -60,6 +62,14 @@ public abstract class MixinFontRenderer {
     @Shadow public abstract int getCharWidth(char character);
     @Shadow protected abstract void setColor(float r, float g, float b, float a);
     @Shadow protected abstract float renderChar(char ch, boolean italic);
+
+    @Inject(method = "onResourceManagerReload", at = @At("RETURN"))
+    public void datarium$onResourceManagerReload(IResourceManager resourceManager, CallbackInfo ci) {
+        this.glyphsLoaded = false;
+        this.bitmapGlyphs.clear();
+        this.spaceAdvances.clear();
+        this.loadedReferences.clear();
+    }
 
     @Unique
     private void datarium$loadCustomGlyphs() {
@@ -176,6 +186,9 @@ public abstract class MixinFontRenderer {
 
         // Build the texture ResourceLocation
         ResourceLocation atlasLoc = datarium$resolveTexturePath(file);
+
+        // Force the TextureManager to delete the old texture so it reloads from the new resource pack
+        Minecraft.getMinecraft().getTextureManager().deleteTexture(atlasLoc);
 
         try {
             IResource resource = Minecraft.getMinecraft().getResourceManager().getResource(atlasLoc);

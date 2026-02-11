@@ -1,6 +1,7 @@
 package com.slize.datarium.mixin;
 
 import com.slize.datarium.client.cem.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;

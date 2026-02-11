@@ -16,38 +16,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public record SelectNode(String property, String componentKey, List<Case> cases, @Nullable ModernModelNode fallback) implements ModernModelNode {
-    public record Case(List<String> values, List<EnchantmentCondition> enchantmentConditions, ModernModelNode model) {}
-    public record EnchantmentCondition(String enchantmentId, int level) {}
+public record SelectNode(String property, String componentKey, List<Case> cases,
+                         @Nullable ModernModelNode fallback) implements ModernModelNode {
+    public record Case(List<String> values, List<EnchantmentCondition> enchantmentConditions, ModernModelNode model) {
+    }
+
+    public record EnchantmentCondition(String enchantmentId, int level) {
+    }
 
     @Override
     public Object resolve(ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity) {
-        if ("minecraft:display_context".equals(property)) {
-            ItemCameraTransforms.TransformType type = DatariumContext.CURRENT_TRANSFORM.get();
-            String query = type == null ? "none" : switch (type) {
-                case THIRD_PERSON_LEFT_HAND -> "thirdperson_lefthand";
-                case THIRD_PERSON_RIGHT_HAND -> "thirdperson_righthand";
-                case FIRST_PERSON_LEFT_HAND -> "firstperson_lefthand";
-                case FIRST_PERSON_RIGHT_HAND -> "firstperson_righthand";
-                case HEAD -> "head";
-                case GUI -> "gui";
-                case GROUND -> "ground";
-                case FIXED -> "fixed";
-                default -> "none";
-            };
+        String normalizedProperty = normalizeId(property);
 
-            for (Case c : cases) {
-                if (c.values() != null) {
-                    for (String val : c.values()) {
-                        if (val.equals(query)) {
-                            return c.model().resolve(stack, world, entity);
-                        }
-                    }
-                }
-            }
-        } else if ("minecraft:component".equals(property)) {
-            if ("minecraft:custom_name".equals(componentKey)) {
-                String query = stack.getDisplayName();
+        switch (normalizedProperty) {
+            case "display_context" -> {
+                ItemCameraTransforms.TransformType type = DatariumContext.CURRENT_TRANSFORM.get();
+                String query = type == null ? "none" : switch (type) {
+                    case THIRD_PERSON_LEFT_HAND -> "thirdperson_lefthand";
+                    case THIRD_PERSON_RIGHT_HAND -> "thirdperson_righthand";
+                    case FIRST_PERSON_LEFT_HAND -> "firstperson_lefthand";
+                    case FIRST_PERSON_RIGHT_HAND -> "firstperson_righthand";
+                    case HEAD -> "head";
+                    case GUI -> "gui";
+                    case GROUND -> "ground";
+                    case FIXED -> "fixed";
+                    default -> "none";
+                };
+
                 for (Case c : cases) {
                     if (c.values() != null) {
                         for (String val : c.values()) {
@@ -57,16 +52,45 @@ public record SelectNode(String property, String componentKey, List<Case> cases,
                         }
                     }
                 }
-            } else if ("minecraft:stored_enchantments".equals(componentKey)) {
-                Map<ResourceLocation, Integer> enchants = getStoredEnchantments(stack);
+            }
+            case "component" -> {
+                if ("minecraft:custom_name".equals(componentKey)) {
+                    String query = stack.getDisplayName();
+                    for (Case c : cases) {
+                        if (c.values() != null) {
+                            for (String val : c.values()) {
+                                if (val.equals(query)) {
+                                    return c.model().resolve(stack, world, entity);
+                                }
+                            }
+                        }
+                    }
+                } else if ("minecraft:stored_enchantments".equals(componentKey)) {
+                    Map<ResourceLocation, Integer> enchants = getStoredEnchantments(stack);
 
-                for (Case c : cases) {
-                    if (c.enchantmentConditions() != null && !c.enchantmentConditions().isEmpty()) {
-                        for (EnchantmentCondition cond : c.enchantmentConditions()) {
-                            ResourceLocation enchLoc = new ResourceLocation(cond.enchantmentId());
-                            Integer level = enchants.get(enchLoc);
-                            if (level != null && level == cond.level()) {
-                                return c.model().resolve(stack, world, entity);
+                    for (Case c : cases) {
+                        if (c.enchantmentConditions() != null && !c.enchantmentConditions().isEmpty()) {
+                            for (EnchantmentCondition cond : c.enchantmentConditions()) {
+                                ResourceLocation enchLoc = new ResourceLocation(cond.enchantmentId());
+                                Integer level = enchants.get(enchLoc);
+                                if (level != null && level == cond.level()) {
+                                    return c.model().resolve(stack, world, entity);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            case "trim_material" -> {
+                String trimMaterial = getTrimMaterial(stack);
+                if (trimMaterial != null) {
+                    for (Case c : cases) {
+                        if (c.values() != null) {
+                            for (String val : c.values()) {
+                                String normalizedVal = normalizeId(val);
+                                if (normalizedVal.equals(trimMaterial)) {
+                                    return c.model().resolve(stack, world, entity);
+                                }
                             }
                         }
                     }
@@ -75,6 +99,24 @@ public record SelectNode(String property, String componentKey, List<Case> cases,
         }
 
         return fallback != null ? fallback.resolve(stack, world, entity) : null;
+    }
+
+    @Nullable
+    private static String getTrimMaterial(ItemStack stack) {
+        if (stack.isEmpty() || !stack.hasTagCompound()) {
+            return null;
+        }
+
+        NBTTagCompound tag = stack.getTagCompound();
+        if (tag != null && tag.hasKey("Trim", 10)) {
+            NBTTagCompound trimTag = tag.getCompoundTag("Trim");
+            if (trimTag.hasKey("material", 8)) {
+                String material = trimTag.getString("material");
+                return normalizeId(material);
+            }
+        }
+
+        return null;
     }
 
     private static Map<ResourceLocation, Integer> getStoredEnchantments(ItemStack stack) {
@@ -105,5 +147,13 @@ public record SelectNode(String property, String componentKey, List<Case> cases,
         }
 
         return result;
+    }
+
+    private static String normalizeId(String id) {
+        if (id == null) return null;
+        if (id.startsWith("minecraft:")) {
+            return id.substring("minecraft:".length());
+        }
+        return id;
     }
 }

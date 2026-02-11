@@ -16,6 +16,10 @@ public class CEMManager {
     private static final Map<String, CEMModelWrapper> wrapperCache = new ConcurrentHashMap<>();
     private static final Map<Long, CEMRenderState> entityStates = new ConcurrentHashMap<>();
 
+    private static final Set<String> noModelNames = ConcurrentHashMap.newKeySet();
+    private static final Set<String> noAnimatorNames = ConcurrentHashMap.newKeySet();
+    private static final Set<String> noWrapperNames = ConcurrentHashMap.newKeySet();
+
     private static final Map<String, String> ENTITY_MODEL_MAP = new HashMap<>();
 
     static {
@@ -70,12 +74,18 @@ public class CEMManager {
         modelCache.clear();
         animatorCache.clear();
         wrapperCache.clear();
+        noModelNames.clear();
+        noAnimatorNames.clear();
+        noWrapperNames.clear();
     }
 
     @Nullable
     public static CEMModel getModel(String name) {
         if (modelCache.containsKey(name)) {
             return modelCache.get(name);
+        }
+        if (noModelNames.contains(name)) {
+            return null;
         }
 
         ResourceLocation[] locations = {
@@ -98,7 +108,7 @@ public class CEMManager {
             }
         }
 
-        modelCache.put(name, null);
+        noModelNames.add(name);
         return null;
     }
 
@@ -107,10 +117,13 @@ public class CEMManager {
         if (animatorCache.containsKey(name)) {
             return animatorCache.get(name);
         }
+        if (noAnimatorNames.contains(name)) {
+            return null;
+        }
 
         CEMModel model = getModel(name);
         if (model == null || model.animations.isEmpty()) {
-            animatorCache.put(name, null);
+            noAnimatorNames.add(name);
             return null;
         }
 
@@ -125,10 +138,13 @@ public class CEMManager {
         if (wrapperCache.containsKey(name)) {
             return wrapperCache.get(name);
         }
+        if (noWrapperNames.contains(name)) {
+            return null;
+        }
 
         CEMModel model = getModel(name);
         if (model == null) {
-            wrapperCache.put(name, null);
+            noWrapperNames.add(name);
             return null;
         }
 

@@ -19,6 +19,7 @@
     "MixinRenderEntityItem",
     "MixinModelRenderer",
     "MixinRenderLivingBase",
+    "MixinResourcePackListEntry",
     "MixinGuiMainMenu",
     "MixinLocale"
   ],

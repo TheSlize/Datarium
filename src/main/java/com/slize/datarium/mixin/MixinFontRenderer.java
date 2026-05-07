@@ -239,6 +239,9 @@ public abstract class MixinFontRenderer {
                                 float v1 = (float) (y0 + cellH) / (float) imgH;
 
                                 int renderHeight = cellHeightFromJson != null ? cellHeightFromJson : cellH;
+                                if (codePoint >= 0x20 && codePoint <= 0x7E) {
+                                    continue;
+                                }
                                 BitmapGlyph glyph = new BitmapGlyph(atlasLoc, ascent, renderHeight, (float) advancePx, (float) drawWidthPx, u0, v0, u1, v1);
                                 this.bitmapGlyphs.put(codePoint, glyph);
                             }
@@ -374,6 +377,7 @@ public abstract class MixinFontRenderer {
 
     @Inject(method = "getCharWidth", at = @At("HEAD"), cancellable = true)
     public void datarium$getCharWidth(char character, CallbackInfoReturnable<Integer> cir) {
+        if (character >= 0x20 && character <= 0x7E) return;
         this.datarium$loadCustomGlyphs();
         int width = datarium$getCodePointWidth(character);
         if (width >= 0) {
@@ -383,6 +387,7 @@ public abstract class MixinFontRenderer {
 
     @Inject(method = "renderChar", at = @At("HEAD"), cancellable = true)
     private void datarium$renderChar(char ch, boolean italic, CallbackInfoReturnable<Float> cir) {
+        if (ch >= 0x20 && ch <= 0x7E) return;
         this.datarium$loadCustomGlyphs();
         float result = datarium$renderCodePoint(ch, italic);
         if (result >= 0) {
@@ -618,11 +623,11 @@ public abstract class MixinFontRenderer {
                 continue;
             }
 
-            // Check if we have a custom glyph for this code point
-            boolean hasCustomGlyph = bitmapGlyphs.containsKey(codePoint) || spaceAdvances.containsKey(codePoint);
 
             // For randomStyle, only apply to vanilla characters
             int renderCodePoint = codePoint;
+            // Check if we have a custom glyph for this code point
+            boolean hasCustomGlyph = bitmapGlyphs.containsKey(renderCodePoint) || spaceAdvances.containsKey(renderCodePoint);
             if (this.randomStyle && !hasCustomGlyph && codePoint <= 0xFFFF) {
                 int j = "ÀÁÂÈÊËÍÓÔÕÚßãõğİıŒœŞşŴŵžȇ\u0000\u0000\u0000\u0000\u0000\u0000\u0000 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0000ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αβΓπΣσμτΦΘΩδ∞∅∈∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u0000".indexOf((char) codePoint);
                 if (j != -1) {

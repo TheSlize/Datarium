@@ -3,6 +3,7 @@ package com.slize.datarium.mixin;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.slize.datarium.client.cit.CITManager;
+import com.slize.datarium.client.cit.GlobalCITProperties;
 import com.slize.datarium.client.model.LogicCarrierOverride;
 import com.slize.datarium.client.model.ModernModelDefinitionDeserializer;
 import com.slize.datarium.client.model.ModernOverrideListWrapper;
@@ -43,6 +44,7 @@ public abstract class MixinModelBakery {
     public void onInit(IResourceManager resourceManagerIn, TextureMap textureMapIn, BlockModelShapes blockModelShapesIn, CallbackInfo ci) {
         RespackOptsManager.invalidate();
         CITManager.invalidate();
+        GlobalCITProperties.invalidate();
     }
 
     @Inject(method = "loadModel", at = @At("HEAD"), cancellable = true)

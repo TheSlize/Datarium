@@ -4,7 +4,6 @@ import com.slize.datarium.DatariumMain;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.*;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -15,6 +14,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -164,94 +164,168 @@ public class CITManager {
             return;
         }
 
-        String type = props.getProperty("type", "item");
-        if (!"item".equals(type)) {
-            return;
-        }
+        String typeStr = props.getProperty("type", "item").trim().toLowerCase(Locale.ROOT);
+        CITEntry.CITType citType = switch (typeStr) {
+            case "armor" -> CITEntry.CITType.ARMOR;
+            case "elytra" -> CITEntry.CITType.ELYTRA;
+            case "enchantment" -> CITEntry.CITType.ENCHANTMENT;
+            default -> CITEntry.CITType.ITEM;
+        };
 
+        // items
         List<Item> items = new ArrayList<>();
-        String itemsStr = props.getProperty("items", props.getProperty("matchItems", ""));
-        if (!itemsStr.isEmpty()) {
+        String itemsStr = props.getProperty("items", props.getProperty("matchItems", "")).trim();
+        if (itemsStr.isEmpty()) {
+            // auto-detect from filename
+            String path = location.getPath();
+            String fileName = path.substring(path.lastIndexOf('/') + 1);
+            if (fileName.endsWith(".properties")) fileName = fileName.substring(0, fileName.length() - ".properties".length());
+            String autoId = fileName.contains(":") ? fileName : "minecraft:" + fileName;
+            Item autoItem = Item.getByNameOrId(autoId);
+            if (autoItem != null) items.add(autoItem);
+        } else {
             for (String itemId : itemsStr.split("\\s+")) {
                 itemId = itemId.trim();
                 if (itemId.isEmpty()) continue;
-
-                if (!itemId.contains(":")) {
-                    itemId = "minecraft:" + itemId;
-                }
-
+                if (!itemId.contains(":")) itemId = "minecraft:" + itemId;
                 Item item = Item.getByNameOrId(itemId);
-                if (item != null) {
-                    items.add(item);
-                }
+                if (item != null) items.add(item);
             }
         }
 
-        String textureStr = props.getProperty("texture", props.getProperty("tile", ""));
+        // texture
+        String textureStr = props.getProperty("texture", props.getProperty("tile", "")).trim();
         ResourceLocation texture = null;
         if (!textureStr.isEmpty()) {
-            texture = resolveTexturePath(location, textureStr);
+            texture = resolveAssetPath(location, textureStr, ".png");
         }
 
-        String modelStr = props.getProperty("model", "");
+        // model
+        String modelStr = props.getProperty("model", "").trim();
         ResourceLocation model = null;
         if (!modelStr.isEmpty()) {
-            model = resolveModelPath(location, modelStr);
+            model = resolveAssetPath(location, modelStr, ".json");
         }
 
-        String nameMatch = null;
-        CITEntry.MatchType nameMatchType = CITEntry.MatchType.EXACT;
-
-        String nbtName = props.getProperty("nbt.display.Name", "");
-        if (nbtName.isEmpty()) {
-            nbtName = props.getProperty("nbt.display.name", "");
+        // auto-discovery: if neither texture nor model declared, look for same-named file
+        if (texture == null && model == null) {
+            String path = location.getPath();
+            String base = path.substring(0, path.lastIndexOf('.'));
+            ResourceLocation autoModel = new ResourceLocation(location.getNamespace(), base + ".json");
+            ResourceLocation autoTexture = new ResourceLocation(location.getNamespace(), base + ".png");
+            // We'll store both as candidates; at apply time check which exists
+            // For now store in texture/model fields — prefer model
+            model = autoModel;
+            texture = autoTexture;
+            // Mark as auto (we'll check existence at apply time in MixinItemOverrideList)
+            // We can use a convention: store both and let the mixin try model first, then texture
         }
 
-        if (!nbtName.isEmpty()) {
-            if (nbtName.startsWith("ipattern:")) {
-                nameMatch = nbtName.substring("ipattern:".length());
-                nameMatchType = CITEntry.MatchType.IPATTERN;
-            } else if (nbtName.startsWith("pattern:")) {
-                nameMatch = nbtName.substring("pattern:".length());
-                nameMatchType = CITEntry.MatchType.PATTERN;
-            } else if (nbtName.startsWith("iregex:")) {
-                nameMatch = nbtName.substring("iregex:".length());
-                nameMatchType = CITEntry.MatchType.IREGEX;
-            } else if (nbtName.startsWith("regex:")) {
-                nameMatch = nbtName.substring("regex:".length());
-                nameMatchType = CITEntry.MatchType.REGEX;
-            } else {
-                nameMatch = nbtName;
+        // sub textures: texture.<name>=...
+        Map<String, ResourceLocation> subTextures = new HashMap<>();
+        Map<String, ResourceLocation> subModels = new HashMap<>();
+        for (String key : props.stringPropertyNames()) {
+            if (key.startsWith("texture.") && key.length() > "texture.".length()) {
+                String subName = key.substring("texture.".length());
+                String subVal = props.getProperty(key).trim();
+                if (!subVal.isEmpty()) subTextures.put(subName, resolveAssetPath(location, subVal, ".png"));
+            } else if (key.startsWith("model.") && key.length() > "model.".length()) {
+                String subName = key.substring("model.".length());
+                String subVal = props.getProperty(key).trim();
+                if (!subVal.isEmpty()) subModels.put(subName, resolveAssetPath(location, subVal, ".json"));
             }
         }
 
+        // weight
         int weight = 0;
-        try {
-            weight = Integer.parseInt(props.getProperty("weight", "0"));
-        } catch (NumberFormatException ignored) {}
+        try { weight = Integer.parseInt(props.getProperty("weight", "0").trim()); } catch (NumberFormatException ignored) {}
 
-        Integer damage = null;
-        Integer damageMin = null;
-        Integer damageMax = null;
-        String damageStr = props.getProperty("damage", "");
+        // damage
+        Integer damage = null, damageMin = null, damageMax = null;
+        boolean damagePercent = false;
+        Integer damageMask = null;
+        String damageStr = props.getProperty("damage", "").trim();
         if (!damageStr.isEmpty()) {
+            if (damageStr.endsWith("%")) {
+                damagePercent = true;
+                damageStr = damageStr.substring(0, damageStr.length() - 1).trim();
+            }
             if (damageStr.contains("-")) {
-                String[] parts = damageStr.split("-");
+                String[] parts = damageStr.split("-", 2);
                 try {
                     damageMin = Integer.parseInt(parts[0].trim());
                     damageMax = Integer.parseInt(parts[1].trim());
                 } catch (Exception ignored) {}
             } else {
+                try { damage = Integer.parseInt(damageStr); } catch (NumberFormatException ignored) {}
+            }
+        }
+        String damageMaskStr = props.getProperty("damageMask", "").trim();
+        if (!damageMaskStr.isEmpty()) {
+            try { damageMask = Integer.parseInt(damageMaskStr); } catch (NumberFormatException ignored) {}
+        }
+
+        // stackSize
+        Integer stackSize = null, stackSizeMin = null, stackSizeMax = null;
+        String stackStr = props.getProperty("stackSize", "").trim();
+        if (!stackStr.isEmpty()) {
+            if (stackStr.contains("-")) {
+                String[] parts = stackStr.split("-", 2);
                 try {
-                    damage = Integer.parseInt(damageStr.trim());
-                } catch (NumberFormatException ignored) {}
+                    String lo = parts[0].trim(), hi = parts[1].trim();
+                    stackSizeMin = lo.isEmpty() ? null : Integer.parseInt(lo);
+                    stackSizeMax = hi.isEmpty() ? null : Integer.parseInt(hi);
+                } catch (Exception ignored) {}
+            } else {
+                try { stackSize = Integer.parseInt(stackStr); } catch (NumberFormatException ignored) {}
             }
         }
 
+        // hand
+        CITEntry.Hand hand = CITEntry.Hand.ANY;
+        String handStr = props.getProperty("hand", "").trim().toLowerCase(Locale.ROOT);
+        if (handStr.equals("main")) hand = CITEntry.Hand.MAIN;
+        else if (handStr.equals("off")) hand = CITEntry.Hand.OFF;
+
+        // enchantments
         Map<Enchantment, int[]> enchantments = parseEnchantments(props);
 
-        CITEntry entry = new CITEntry(location, items, texture, model, nameMatch, nameMatchType,
-                weight, damage, damageMin, damageMax, enchantments);
+        // nbt conditions (generic)
+        List<CITEntry.NBTCondition> nbtConditions = new ArrayList<>();
+        for (String key : props.stringPropertyNames()) {
+            if (key.startsWith("nbt.") && key.length() > "nbt.".length()) {
+                String nbtPath = key.substring("nbt.".length());
+                String nbtVal = props.getProperty(key);
+                nbtConditions.add(new CITEntry.NBTCondition(nbtPath, nbtVal));
+            }
+        }
+
+        int glintLayer = 0;
+        float glintSpeed = 0f, glintRotation = 0f;
+        float glintR = 1f, glintG = 1f, glintB = 1f, glintA = 1f;
+        boolean glintBlur = false, glintUseGlint = false;
+        String glintBlend = "add";
+        if (citType == CITEntry.CITType.ENCHANTMENT) {
+            try { glintLayer = Integer.parseInt(props.getProperty("layer", "0").trim()); } catch (NumberFormatException ignored) {}
+            try { glintSpeed = Float.parseFloat(props.getProperty("speed", "0.0").trim()); } catch (NumberFormatException ignored) {}
+            try { glintRotation = Float.parseFloat(props.getProperty("rotation", "0.0").trim()); } catch (NumberFormatException ignored) {}
+            try { glintR = Float.parseFloat(props.getProperty("r", "1.0").trim()); } catch (NumberFormatException ignored) {}
+            try { glintG = Float.parseFloat(props.getProperty("g", "1.0").trim()); } catch (NumberFormatException ignored) {}
+            try { glintB = Float.parseFloat(props.getProperty("b", "1.0").trim()); } catch (NumberFormatException ignored) {}
+            try { glintA = Float.parseFloat(props.getProperty("a", "1.0").trim()); } catch (NumberFormatException ignored) {}
+            glintBlur = Boolean.parseBoolean(props.getProperty("blur", "false").trim());
+            glintUseGlint = Boolean.parseBoolean(props.getProperty("useGlint", "false").trim());
+            glintBlend = props.getProperty("blend", "add").trim();
+        }
+
+        CITEntry entry = new CITEntry(location, citType, items, texture, model,
+                subTextures, subModels, weight,
+                damage, damageMin, damageMax, damagePercent, damageMask,
+                stackSize, stackSizeMin, stackSizeMax,
+                hand, enchantments, nbtConditions,
+                glintLayer, glintSpeed, glintRotation,
+                glintR, glintG, glintB, glintA,
+                glintBlur, glintUseGlint, glintBlend);
         entries.add(entry);
     }
 
@@ -297,65 +371,108 @@ public class CITManager {
         return result.isEmpty() ? null : result;
     }
 
-    private static ResourceLocation resolveTexturePath(ResourceLocation propsLocation, String texture) {
-        String domain = propsLocation.getNamespace();
-        String basePath = propsLocation.getPath();
+    public static Set<ResourceLocation> collectModelTextures(CITEntry entry) {
+        Set<ResourceLocation> result = new HashSet<>();
+        ResourceLocation modelLoc = entry.getModel();
+        if (modelLoc == null) return result;
 
-        int lastSlash = basePath.lastIndexOf('/');
-        String dir = lastSlash >= 0 ? basePath.substring(0, lastSlash + 1) : "";
+        ResourceLocation jsonLoc = modelLoc.getPath().endsWith(".json") ? modelLoc
+                : new ResourceLocation(modelLoc.getNamespace(), modelLoc.getPath() + ".json");
 
-        if (texture.contains(":")) {
-            String[] parts = texture.split(":", 2);
-            String path = parts[1];
-            if (!path.endsWith(".png")) path += ".png";
-            return new ResourceLocation(parts[0], dir + path);
-        } else if (texture.startsWith("./") || texture.startsWith("~/")) {
-            String path = texture.substring(2);
-            if (!path.endsWith(".png")) path += ".png";
-            return new ResourceLocation(domain, dir + path);
-        } else if (texture.startsWith("/")) {
-            String path = texture.substring(1);
-            if (!path.endsWith(".png")) path += ".png";
-            return new ResourceLocation(domain, path);
-        } else {
-            String path = texture;
-            if (!path.endsWith(".png")) path += ".png";
-            return new ResourceLocation(domain, dir + path);
-        }
+        try (InputStreamReader reader = new InputStreamReader(
+                Minecraft.getMinecraft().getResourceManager().getResource(jsonLoc).getInputStream(),
+                StandardCharsets.UTF_8)) {
+            com.google.gson.JsonObject json = new com.google.gson.GsonBuilder().create()
+                    .fromJson(reader, com.google.gson.JsonObject.class);
+            if (json.has("textures")) {
+                for (Map.Entry<String, com.google.gson.JsonElement> e : json.getAsJsonObject("textures").entrySet()) {
+                    String texPath = e.getValue().getAsString();
+                    if (texPath.startsWith("#")) continue;
+                    ResourceLocation texLoc;
+                    if (texPath.contains(":")) {
+                        String[] parts = texPath.split(":", 2);
+                        String p = parts[1].endsWith(".png") ? parts[1] : parts[1] + ".png";
+                        texLoc = new ResourceLocation(parts[0], "textures/" + p);
+                    } else {
+                        String p = texPath.endsWith(".png") ? texPath : texPath + ".png";
+                        texLoc = new ResourceLocation(entry.getPropertiesLocation().getNamespace(), "textures/" + p);
+                    }
+                    result.add(texLoc);
+                }
+            }
+        } catch (Exception ignored) {}
+
+        return result;
     }
 
-    private static ResourceLocation resolveModelPath(ResourceLocation propsLocation, String model) {
+    public static ResourceLocation resolveAssetPath(ResourceLocation propsLocation, String path, String ext) {
         String domain = propsLocation.getNamespace();
         String basePath = propsLocation.getPath();
-
         int lastSlash = basePath.lastIndexOf('/');
         String dir = lastSlash >= 0 ? basePath.substring(0, lastSlash + 1) : "";
 
-        if (model.contains(":")) {
-            String[] parts = model.split(":", 2);
-            return new ResourceLocation(parts[0], parts[1]);
-        } else if (model.startsWith("./") || model.startsWith("~/")) {
-            String path = model.substring(2);
-            return new ResourceLocation(domain, dir + path);
-        } else if (model.startsWith("/")) {
-            return new ResourceLocation(domain, model.substring(1));
+        String resolved;
+        String resolvedDomain = domain;
+
+        if (path.contains(":")) {
+            // namespaced: either "ns:path" or "assets/ns/path"
+            String[] colonParts = path.split(":", 2);
+            resolvedDomain = colonParts[0];
+            resolved = colonParts[1];
+        } else if (path.startsWith("assets/")) {
+            // full resourcepack path
+            String afterAssets = path.substring("assets/".length());
+            int slash = afterAssets.indexOf('/');
+            if (slash == -1) return null;
+            resolvedDomain = afterAssets.substring(0, slash);
+            resolved = afterAssets.substring(slash + 1);
+        } else if (path.startsWith("/")) {
+            resolved = path.substring(1);
         } else {
-            return new ResourceLocation(domain, dir + model);
+            resolved = dir + path;
         }
+
+        resolved = normalizePath(resolved);
+
+        if (!resolved.endsWith(ext)) resolved += ext;
+
+        return new ResourceLocation(resolvedDomain, resolved);
+    }
+
+    private static String normalizePath(String path) {
+        String[] parts = path.split("/");
+        Deque<String> stack = new ArrayDeque<>();
+        for (String part : parts) {
+            if (part.equals("..")) {
+                if (!stack.isEmpty()) stack.pollLast();
+            } else if (!part.equals(".") && !part.isEmpty()) {
+                stack.addLast(part);
+            }
+        }
+        return String.join("/", stack);
     }
 
     @Nullable
     public static CITEntry getMatch(ItemStack stack) {
-        if (!loaded) {
-            reload();
-        }
+        return getMatch(stack, CITEntry.Hand.ANY);
+    }
 
+    @Nullable
+    public static CITEntry getMatch(ItemStack stack, CITEntry.Hand hand) {
+        if (!loaded) reload();
         for (CITEntry entry : entries) {
-            if (entry.matches(stack)) {
-                return entry;
-            }
+            if (entry.matches(stack, hand)) return entry;
         }
         return null;
+    }
+
+    public static List<CITEntry> getMatchesOfType(ItemStack stack, CITEntry.CITType type) {
+        if (!loaded) reload();
+        List<CITEntry> result = new ArrayList<>();
+        for (CITEntry entry : entries) {
+            if (entry.getCITType() == type && entry.matches(stack)) result.add(entry);
+        }
+        return result;
     }
 
     public static void invalidate() {
@@ -372,9 +489,8 @@ public class CITManager {
         if (!loaded) reload();
         Set<ResourceLocation> textures = new HashSet<>();
         for (CITEntry entry : entries) {
-            if (entry.getTexture() != null) {
-                textures.add(entry.getTexture());
-            }
+            if (entry.getTexture() != null) textures.add(entry.getTexture());
+            textures.addAll(entry.getSubTextures().values());
         }
         return textures;
     }

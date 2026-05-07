@@ -2,10 +2,7 @@ package com.slize.datarium.mixin;
 
 import com.google.common.collect.ImmutableList;
 import com.slize.datarium.DatariumMain;
-import com.slize.datarium.client.cit.CITBakedModel;
-import com.slize.datarium.client.cit.CITEntry;
-import com.slize.datarium.client.cit.CITManager;
-import com.slize.datarium.client.cit.CITModelCache;
+import com.slize.datarium.client.cit.*;
 import com.slize.datarium.client.model.CompositeBakedModel;
 import com.slize.datarium.client.model.LogicCarrierOverride;
 import com.slize.datarium.client.model.nodes.ModernModelNode;
@@ -27,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Mixin(ItemOverrideList.class)
 public abstract class MixinItemOverrideList {
@@ -44,7 +42,6 @@ public abstract class MixinItemOverrideList {
         if (citMatch != null) {
             IBakedModel citModel = datarium$getCITModel(citMatch, originalModel);
             if (citModel != null) {
-                DatariumMain.LOGGER.info("BRUH1");
                 cir.setReturnValue(citModel);
                 return;
             }
@@ -93,15 +90,35 @@ public abstract class MixinItemOverrideList {
     @Nullable
     private IBakedModel datarium$getCITModel(CITEntry entry, IBakedModel baseModel) {
         ResourceLocation textureLoc = entry.getTexture();
-        ResourceLocation modelLoc = entry.getModel();
+        ModelManager modelManager = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getModelManager();
 
-        // If CIT specifies a custom model, use that
+        Map<String, ResourceLocation> subModels = entry.getSubModels();
+        if (!subModels.isEmpty()) {
+            ResourceLocation subLoc = subModels.getOrDefault("inventory", subModels.values().iterator().next());
+            ModelResourceLocation mrl = new ModelResourceLocation(subLoc, "inventory");
+            IBakedModel subModel = modelManager.getModel(mrl);
+            if (subModel != null && subModel != modelManager.getMissingModel()) {
+                return subModel;
+            }
+        }
+
+        // Top-level model — загружаем динамически из ресурспака
+        ResourceLocation modelLoc = entry.getModel();
         if (modelLoc != null) {
-            ModelManager modelManager = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getModelManager();
+            // Сначала пробуем ModelManager (если модель зарегистрирована штатно)
             ModelResourceLocation mrl = new ModelResourceLocation(modelLoc, "inventory");
-            IBakedModel model = modelManager.getModel(mrl);
-            if (model != null && model != modelManager.getMissingModel()) {
-                return model;
+            IBakedModel registered = modelManager.getModel(mrl);
+            if (registered != null && registered != modelManager.getMissingModel()) {
+                return registered;
+            }
+            // Иначе — динамический загрузчик CIT-моделей
+            if (CITModelCache.contains(modelLoc)) {
+                return CITModelCache.get(modelLoc);
+            }
+            IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.getPropertiesLocation(), baseModel);
+            if (dynamic != null) {
+                CITModelCache.put(modelLoc, dynamic);
+                return dynamic;
             }
         }
 
@@ -113,19 +130,14 @@ public abstract class MixinItemOverrideList {
 
             TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
             String spritePath = textureLoc.getPath();
-            if (spritePath.endsWith(".png")) {
-                spritePath = spritePath.substring(0, spritePath.length() - 4);
-            }
-            ResourceLocation spriteLoc = new ResourceLocation(textureLoc.getNamespace(), spritePath);
-            TextureAtlasSprite sprite = textureMap.getAtlasSprite(spriteLoc.toString());
-            if (textureLoc.toString().contains("5opka")) DatariumMain.LOGGER.info("SPRITELOC PYATORKA: {}", spriteLoc);
-            if (textureLoc.toString().contains("5opka")) DatariumMain.LOGGER.info("SPRITE PYATORKA: {}", sprite);
-
-            if (sprite != null && sprite != textureMap.getMissingSprite()) {
-                if (textureLoc.toString().contains("5opka")) DatariumMain.LOGGER.info("FUCK YEAH");
-                CITBakedModel citModel = new CITBakedModel(baseModel, sprite);
+            if (spritePath.endsWith(".png")) spritePath = spritePath.substring(0, spritePath.length() - 4);
+            if (spritePath.startsWith("textures/")) spritePath = spritePath.substring("textures/".length());
+            String spriteName = textureLoc.getNamespace() + ":" + spritePath;
+            TextureAtlasSprite sprite = textureMap.getTextureExtry(spriteName);
+            if (sprite == null) sprite = textureMap.getAtlasSprite(spriteName);
+            if (sprite != null) {
+                IBakedModel citModel = new CITBakedModel(baseModel, sprite);
                 CITModelCache.put(textureLoc, citModel);
-                if (textureLoc.toString().contains("5opka")) DatariumMain.LOGGER.info("CITMODEL: {}", citModel);
                 return citModel;
             }
         }

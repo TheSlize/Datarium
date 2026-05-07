@@ -1,6 +1,7 @@
 package com.slize.datarium.mixin;
 
 import com.slize.datarium.client.cit.CITAtlasSprite;
+import com.slize.datarium.client.cit.CITEntry;
 import com.slize.datarium.client.cit.CITManager;
 import com.slize.datarium.client.cit.CITModelCache;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -23,15 +24,13 @@ public abstract class MixinTextureMap {
 
     @Inject(method = "loadTextureAtlas", at = @At("HEAD"))
     private void onLoadTextureAtlasHead(IResourceManager resourceManager, CallbackInfo ci) {
-        // Reload CIT
         CITManager.reload();
         CITModelCache.clear();
 
         Set<ResourceLocation> citTextures = CITManager.getAllCITTextures();
 
         for (ResourceLocation texLoc : citTextures) {
-            String path = texLoc.getPath();
-            String spritePath = path;
+            String spritePath = texLoc.getPath();
             if (spritePath.endsWith(".png")) {
                 spritePath = spritePath.substring(0, spritePath.length() - 4);
             }
@@ -39,6 +38,18 @@ public abstract class MixinTextureMap {
             String spriteName = texLoc.getNamespace() + ":" + spritePath;
             CITAtlasSprite sprite = new CITAtlasSprite(spriteName, texLoc);
             this.setTextureEntry(sprite);
+        }
+
+        for (CITEntry entry : CITManager.getEntries()) {
+            if (entry.getModel() == null) continue;
+            CITManager.collectModelTextures(entry).forEach(texLoc -> {
+                String spritePath = texLoc.getPath().endsWith(".png")
+                        ? texLoc.getPath().substring(0, texLoc.getPath().length() - 4)
+                        : texLoc.getPath();
+                String spriteName = texLoc.getNamespace() + ":" + spritePath;
+                CITAtlasSprite sprite = new CITAtlasSprite(spriteName, texLoc);
+                setTextureEntry(sprite);
+            });
         }
     }
 }

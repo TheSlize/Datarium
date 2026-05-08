@@ -393,11 +393,13 @@ public class CITManager {
                         String[] parts = texPath.split(":", 2);
                         String p = parts[1].endsWith(".png") ? parts[1] : parts[1] + ".png";
                         texLoc = new ResourceLocation(parts[0], "textures/" + p);
+                    } else if (texPath.startsWith("./") || texPath.startsWith("../") || !texPath.contains("/")) {
+                        texLoc = resolveAssetPath(entry.getPropertiesLocation(), texPath, ".png");
                     } else {
                         String p = texPath.endsWith(".png") ? texPath : texPath + ".png";
                         texLoc = new ResourceLocation(entry.getPropertiesLocation().getNamespace(), "textures/" + p);
                     }
-                    result.add(texLoc);
+                    if (texLoc != null) result.add(texLoc);
                 }
             }
         } catch (Exception ignored) {}

@@ -17,6 +17,7 @@
     "MixinModelBakery",
     "MixinRenderItem",
     "MixinRenderEntityItem",
+    "MixinStitcher",
     "MixinModelRenderer",
     "MixinRenderLivingBase",
     "MixinResourcePackListEntry",

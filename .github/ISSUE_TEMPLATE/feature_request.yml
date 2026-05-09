@@ -16,7 +16,7 @@ body:
     id: feature_description
     attributes:
       label: Feature Description
-      description: A clear and concise description of what you want added or changed. Explain *what* is missing and *why* it would be useful.
+      description: A clear and concise description of what you want added or changed. Explain *what* is missing or *why* the change/addition would be useful.
     validations:
       required: true
 
@@ -27,7 +27,7 @@ body:
       description: Is your feature request related to a problem? Describe it.
       placeholder: "I can't do X because..."
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: proposed_solution
@@ -40,7 +40,7 @@ body:
   - type: textarea
     id: modern_analogues
     attributes:
-      label: Analogues in Modern Versions (1.20 / 1.21)
+      label: Analogues in modern versions (1.20 / 1.21)
       description: Does this feature exist in Minecraft 1.20 or 1.21 — in vanilla or in a mod? Name the mod(s) or vanilla mechanic, and briefly describe how it works there.
       placeholder: |
         1.20 — ExampleMod (link): brief description

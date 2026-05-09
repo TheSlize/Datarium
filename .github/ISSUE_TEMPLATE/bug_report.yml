@@ -63,20 +63,6 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: forge_version
-    attributes:
-      label: Minecraft Forge Version
-    validations:
-      required: true
-
-  - type: input
-    id: java_version
-    attributes:
-      label: Java Version
-    validations:
-      required: true
-
   - type: dropdown
     id: issue_type
     attributes:

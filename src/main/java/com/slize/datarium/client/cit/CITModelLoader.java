@@ -102,6 +102,15 @@ public class CITModelLoader {
                 float[] from = jsonArrayToFloats(elem.getAsJsonArray("from"));
                 float[] to   = jsonArrayToFloats(elem.getAsJsonArray("to"));
 
+                float EPSILON = 0.01f;
+                for (int axis = 0; axis < 3; axis++) {
+                    if (Math.abs(to[axis] - from[axis]) < 0.001f) {
+                        from[axis] -= EPSILON;
+                        to[axis]   += EPSILON;
+                        break;
+                    }
+                }
+
                 org.lwjgl.util.vector.Vector3f posFrom = new org.lwjgl.util.vector.Vector3f(from[0], from[1], from[2]);
                 org.lwjgl.util.vector.Vector3f posTo   = new org.lwjgl.util.vector.Vector3f(to[0],   to[1],   to[2]);
 
@@ -223,7 +232,7 @@ public class CITModelLoader {
             @Override public List<BakedQuad> getQuads(@Nullable IBlockState s, @Nullable EnumFacing side, long rand) {
                 return side == null ? finalQuads : Collections.emptyList();
             }
-            @Override public boolean isAmbientOcclusion() { return true; }
+            @Override public boolean isAmbientOcclusion() { return false; }
             @Override public boolean isGui3d() { return true; }
             @Override public boolean isBuiltInRenderer() { return false; }
             @Override public TextureAtlasSprite getParticleTexture() { return particle; }

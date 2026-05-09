@@ -82,6 +82,28 @@ public class MixinRenderItem {
         DatariumContext.CURRENT_TRANSFORM.remove();
     }
 
+    @Inject(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/client/renderer/block/model/ItemCameraTransforms$TransformType;Z)V",
+            at = @At("HEAD"))
+    public void datarium$onRenderHeadItemPre(ItemStack stack, @Nullable EntityLivingBase entity, TransformType transform, boolean leftHanded, CallbackInfo ci) {
+        if (transform == TransformType.HEAD) {
+            GlStateManager.disableLighting();
+            GlStateManager.enableBlend();
+            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+            GL11.glPolygonOffset(-2.0f, -4.0f);
+        }
+    }
+
+    @Inject(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/client/renderer/block/model/ItemCameraTransforms$TransformType;Z)V",
+            at = @At("RETURN"))
+    public void datarium$onRenderHeadItemPost(ItemStack stack, @Nullable EntityLivingBase entity, TransformType transform, boolean leftHanded, CallbackInfo ci) {
+        if (transform == TransformType.HEAD) {
+            GL11.glPolygonOffset(0.0f, 0.0f);
+            GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
+            GlStateManager.enableLighting();
+        }
+    }
+
     @Inject(method = "renderItemIntoGUI", at = @At("RETURN"))
     private void afterRenderItemIntoGUI(ItemStack stack, int x, int y, CallbackInfo ci) {
         if (stack.isEmpty() || !stack.isItemEnchanted()) return;

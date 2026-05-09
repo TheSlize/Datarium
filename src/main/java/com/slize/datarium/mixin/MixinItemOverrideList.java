@@ -38,7 +38,7 @@ public abstract class MixinItemOverrideList {
     public void onHandleItemState(IBakedModel originalModel, ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity, CallbackInfoReturnable<IBakedModel> cir) {
         CITEntry citMatch = CITManager.getMatch(stack);
         if (citMatch != null) {
-            IBakedModel citModel = datarium$getCITModel(citMatch, originalModel);
+            IBakedModel citModel = datarium$getCITModel(citMatch, originalModel, entity);
             if (citModel != null) {
                 cir.setReturnValue(citModel);
                 return;
@@ -85,11 +85,66 @@ public abstract class MixinItemOverrideList {
 
     @Unique
     @Nullable
-    private IBakedModel datarium$getCITModel(CITEntry entry, IBakedModel baseModel) {
-        ResourceLocation textureLoc = entry.getTexture();
+    private IBakedModel datarium$getCITModel(CITEntry entry, IBakedModel baseModel, @Nullable EntityLivingBase entity) {
         ModelManager modelManager = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getModelManager();
 
+        boolean isBlocking = entity != null
+                && !entity.getActiveItemStack().isEmpty()
+                && entity.getActiveItemStack().getItem() instanceof net.minecraft.item.ItemShield;
+
         Map<String, ResourceLocation> subModels = entry.getSubModels();
+        Map<String, ResourceLocation> subTextures = entry.getSubTextures();
+
+        if (isBlocking && subModels.containsKey("shield_blocking")) {
+            ResourceLocation subLoc = subModels.get("shield_blocking");
+            if (CITModelCache.contains(subLoc, subLoc)) {
+                return CITModelCache.get(subLoc, subLoc);
+            }
+            ModelResourceLocation mrl = new ModelResourceLocation(subLoc, "inventory");
+            IBakedModel registered = modelManager.getModel(mrl);
+            if (registered != null && registered != modelManager.getMissingModel()) {
+                CITModelCache.put(subLoc, subLoc, registered);
+                return registered;
+            }
+            ResourceLocation blockingTex = subTextures.getOrDefault("shield_blocking", entry.getTexture());
+            IBakedModel dynamic = CITModelLoader.loadAndBake(subLoc, entry.getPropertiesLocation(), baseModel, blockingTex);
+            if (dynamic != null) {
+                CITModelCache.put(subLoc, subLoc, dynamic);
+                return dynamic;
+            }
+        }
+
+        if (isBlocking && subTextures.containsKey("shield_blocking") && !subModels.containsKey("shield_blocking")) {
+            ResourceLocation blockingTexLoc = subTextures.get("shield_blocking");
+            ResourceLocation modelLoc = entry.getModel();
+            if (modelLoc != null) {
+                if (CITModelCache.contains(modelLoc, blockingTexLoc)) {
+                    return CITModelCache.get(modelLoc, blockingTexLoc);
+                }
+                IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.getPropertiesLocation(), baseModel, blockingTexLoc);
+                if (dynamic != null) {
+                    CITModelCache.put(modelLoc, blockingTexLoc, dynamic);
+                    return dynamic;
+                }
+            } else {
+                if (CITModelCache.contains(null, blockingTexLoc)) {
+                    return CITModelCache.get(null, blockingTexLoc);
+                }
+                TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
+                String spritePath = blockingTexLoc.getPath();
+                if (spritePath.endsWith(".png")) spritePath = spritePath.substring(0, spritePath.length() - 4);
+                if (spritePath.startsWith("textures/")) spritePath = spritePath.substring("textures/".length());
+                String spriteName = blockingTexLoc.getNamespace() + ":" + spritePath;
+                TextureAtlasSprite sprite = textureMap.getTextureExtry(spriteName);
+                if (sprite == null) sprite = textureMap.getAtlasSprite(spriteName);
+                if (sprite != null) {
+                    IBakedModel citModel = new CITBakedModel(baseModel, sprite);
+                    CITModelCache.put(null, blockingTexLoc, citModel);
+                    return citModel;
+                }
+            }
+        }
+
         if (!subModels.isEmpty()) {
             ResourceLocation subLoc = subModels.getOrDefault("inventory", subModels.values().iterator().next());
             ModelResourceLocation mrl = new ModelResourceLocation(subLoc, "inventory");
@@ -117,11 +172,11 @@ public abstract class MixinItemOverrideList {
             }
         }
 
+        ResourceLocation textureLoc = entry.getTexture();
         if (textureLoc != null) {
             if (CITModelCache.contains(null, textureLoc)) {
                 return CITModelCache.get(null, textureLoc);
             }
-
             TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
             String spritePath = textureLoc.getPath();
             if (spritePath.endsWith(".png")) spritePath = spritePath.substring(0, spritePath.length() - 4);

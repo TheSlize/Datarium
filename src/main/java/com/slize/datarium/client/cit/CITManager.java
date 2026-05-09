@@ -1,6 +1,7 @@
 package com.slize.datarium.client.cit;
 
 import com.slize.datarium.DatariumMain;
+import com.slize.datarium.util.UndoFlattenUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.*;
 import net.minecraft.enchantment.Enchantment;
@@ -210,14 +211,23 @@ public class CITManager {
         };
 
         // items
+        // items
         List<Item> items = new ArrayList<>();
+        Integer translatedDamage = null;
+
         String itemsStr = props.getProperty("items", props.getProperty("matchItems", "")).trim();
         if (itemsStr.isEmpty()) {
-            // auto-detect from filename
             String path = location.getPath();
             String fileName = path.substring(path.lastIndexOf('/') + 1);
             if (fileName.endsWith(".properties")) fileName = fileName.substring(0, fileName.length() - ".properties".length());
             String autoId = fileName.contains(":") ? fileName : "minecraft:" + fileName;
+
+            UndoFlattenUtil.FlattenedItem fi = UndoFlattenUtil.getUnflattenedItem(autoId);
+            if (fi != null) {
+                autoId = fi.itemId();
+                translatedDamage = fi.damage();
+            }
+
             Item autoItem = Item.getByNameOrId(autoId);
             if (autoItem != null) items.add(autoItem);
         } else {
@@ -225,6 +235,15 @@ public class CITManager {
                 itemId = itemId.trim();
                 if (itemId.isEmpty()) continue;
                 if (!itemId.contains(":")) itemId = "minecraft:" + itemId;
+
+                UndoFlattenUtil.FlattenedItem fi = UndoFlattenUtil.getUnflattenedItem(itemId);
+                if (fi != null) {
+                    itemId = fi.itemId();
+                    if (translatedDamage == null) {
+                        translatedDamage = fi.damage();
+                    }
+                }
+
                 Item item = Item.getByNameOrId(itemId);
                 if (item != null) items.add(item);
             }
@@ -300,6 +319,10 @@ public class CITManager {
         String damageMaskStr = props.getProperty("damageMask", "").trim();
         if (!damageMaskStr.isEmpty()) {
             try { damageMask = Integer.parseInt(damageMaskStr); } catch (NumberFormatException ignored) {}
+        }
+
+        if (damage == null && damageMin == null && damageMax == null && translatedDamage != null) {
+            damage = translatedDamage;
         }
 
         // stackSize

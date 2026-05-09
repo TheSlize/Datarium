@@ -37,13 +37,8 @@ public class CITModelLoader {
             jsonLoc = new ResourceLocation(jsonLoc.getNamespace(), jsonLoc.getPath() + ".json");
         }
 
-        JsonObject json;
-        try (InputStreamReader reader = new InputStreamReader(
-                rm.getResource(jsonLoc).getInputStream(), StandardCharsets.UTF_8)) {
-            json = GSON.fromJson(reader, JsonObject.class);
-        } catch (Exception e) {
-            return null;
-        }
+        JsonObject json = resolveModelJson(modelLoc, propertiesLoc, new HashSet<>());
+        if (json == null) return null;
 
 
         // Resolve textures map: "#0" -> actual sprite
@@ -266,5 +261,101 @@ public class CITModelLoader {
         float[] res = new float[arr.size()];
         for (int i = 0; i < arr.size(); i++) res[i] = arr.get(i).getAsFloat();
         return res;
+    }
+
+    @Nullable
+    private static JsonObject resolveModelJson(ResourceLocation modelLoc, ResourceLocation propertiesLoc, Set<ResourceLocation> visited) {
+        ResourceLocation jsonLoc = modelLoc.getPath().endsWith(".json")
+                ? modelLoc
+                : new ResourceLocation(modelLoc.getNamespace(), modelLoc.getPath() + ".json");
+
+        if (!visited.add(jsonLoc)) return null;
+
+        JsonObject current = readModelJson(jsonLoc);
+        if (current == null) return null;
+
+        JsonObject resolved = new JsonObject();
+
+        if (current.has("parent")) {
+            String parentPath = current.get("parent").getAsString();
+            ResourceLocation parentLoc = resolveParentModelPath(jsonLoc, parentPath);
+            if (parentLoc != null) {
+                JsonObject parent = resolveModelJson(parentLoc, propertiesLoc, visited);
+                if (parent != null) {
+                    resolved = parent.deepCopy();
+                }
+            }
+        }
+
+        for (Map.Entry<String, JsonElement> e : current.entrySet()) {
+            String key = e.getKey();
+            if ("parent".equals(key)) continue;
+
+            if ("textures".equals(key) && e.getValue().isJsonObject()) {
+                JsonObject mergedTextures = resolved.has("textures") && resolved.get("textures").isJsonObject()
+                        ? resolved.getAsJsonObject("textures").deepCopy()
+                        : new JsonObject();
+
+                for (Map.Entry<String, JsonElement> tex : e.getValue().getAsJsonObject().entrySet()) {
+                    mergedTextures.add(tex.getKey(), tex.getValue().deepCopy());
+                }
+
+                resolved.add("textures", mergedTextures);
+            } else {
+                resolved.add(key, e.getValue().deepCopy());
+            }
+        }
+
+        return resolved;
+    }
+
+    @Nullable
+    private static JsonObject readModelJson(ResourceLocation jsonLoc) {
+        try (InputStreamReader reader = new InputStreamReader(
+                Minecraft.getMinecraft().getResourceManager().getResource(jsonLoc).getInputStream(),
+                StandardCharsets.UTF_8)) {
+            return GSON.fromJson(reader, JsonObject.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    private static ResourceLocation resolveParentModelPath(ResourceLocation currentModelLoc, String path) {
+        if (path == null || path.isEmpty() || path.startsWith("builtin/")) return null;
+
+        String domain = currentModelLoc.getNamespace();
+        String resolvedDomain = domain;
+        String resolved;
+
+        if (path.contains(":")) {
+            String[] parts = path.split(":", 2);
+            resolvedDomain = parts[0];
+            resolved = parts[1];
+        } else if (path.startsWith("/")) {
+            resolved = path.substring(1);
+        } else {
+            String basePath = currentModelLoc.getPath();
+            int lastSlash = basePath.lastIndexOf('/');
+            String dir = lastSlash >= 0 ? basePath.substring(0, lastSlash + 1) : "";
+            resolved = dir + path;
+        }
+
+        resolved = normalizePath(resolved);
+        if (!resolved.endsWith(".json")) resolved += ".json";
+        return new ResourceLocation(resolvedDomain, resolved);
+    }
+
+    private static String normalizePath(String path) {
+        String[] parts = path.split("/");
+        Deque<String> stack = new ArrayDeque<>();
+        for (String part : parts) {
+            if (part.equals("..")) {
+                if (!stack.isEmpty()) stack.pollLast();
+            } else if (!part.equals(".") && !part.isEmpty()) {
+                stack.addLast(part);
+            }
+        }
+        return String.join("/", stack);
     }
 }

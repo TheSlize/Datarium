@@ -1,7 +1,6 @@
 package com.slize.datarium.mixin;
 
 import com.google.common.collect.ImmutableList;
-import com.slize.datarium.DatariumMain;
 import com.slize.datarium.client.cit.*;
 import com.slize.datarium.client.model.CompositeBakedModel;
 import com.slize.datarium.client.model.LogicCarrierOverride;
@@ -37,7 +36,6 @@ public abstract class MixinItemOverrideList {
 
     @Inject(method = "handleItemState", at = @At("HEAD"), cancellable = true)
     public void onHandleItemState(IBakedModel originalModel, ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity, CallbackInfoReturnable<IBakedModel> cir) {
-        // Check CIT first
         CITEntry citMatch = CITManager.getMatch(stack);
         if (citMatch != null) {
             IBakedModel citModel = datarium$getCITModel(citMatch, originalModel);
@@ -47,7 +45,6 @@ public abstract class MixinItemOverrideList {
             }
         }
 
-        // Then check modern model logic
         if (this.modernLogic == null) {
             List<ItemOverride> overrides = this.getOverrides();
             if (overrides != null && !overrides.isEmpty()) {
@@ -102,30 +99,27 @@ public abstract class MixinItemOverrideList {
             }
         }
 
-        // Top-level model — загружаем динамически из ресурспака
         ResourceLocation modelLoc = entry.getModel();
         if (modelLoc != null) {
-            // Сначала пробуем ModelManager (если модель зарегистрирована штатно)
             ModelResourceLocation mrl = new ModelResourceLocation(modelLoc, "inventory");
             IBakedModel registered = modelManager.getModel(mrl);
             if (registered != null && registered != modelManager.getMissingModel()) {
                 return registered;
             }
-            // Иначе — динамический загрузчик CIT-моделей
-            if (CITModelCache.contains(modelLoc)) {
-                return CITModelCache.get(modelLoc);
+            ResourceLocation citTex = entry.getTexture();
+            if (CITModelCache.contains(modelLoc, citTex)) {
+                return CITModelCache.get(modelLoc, citTex);
             }
-            IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.getPropertiesLocation(), baseModel);
+            IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.getPropertiesLocation(), baseModel, citTex);
             if (dynamic != null) {
-                CITModelCache.put(modelLoc, dynamic);
+                CITModelCache.put(modelLoc, citTex, dynamic);
                 return dynamic;
             }
         }
 
-        // If CIT specifies a texture, retexture the base model
         if (textureLoc != null) {
-            if (CITModelCache.contains(textureLoc)) {
-                return CITModelCache.get(textureLoc);
+            if (CITModelCache.contains(null, textureLoc)) {
+                return CITModelCache.get(null, textureLoc);
             }
 
             TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
@@ -137,7 +131,7 @@ public abstract class MixinItemOverrideList {
             if (sprite == null) sprite = textureMap.getAtlasSprite(spriteName);
             if (sprite != null) {
                 IBakedModel citModel = new CITBakedModel(baseModel, sprite);
-                CITModelCache.put(textureLoc, citModel);
+                CITModelCache.put(null, textureLoc, citModel);
                 return citModel;
             }
         }

@@ -27,7 +27,7 @@ public class CITModelLoader {
     private static final Gson GSON = new GsonBuilder().create();
 
     @Nullable
-    public static IBakedModel loadAndBake(ResourceLocation modelLoc, ResourceLocation propertiesLoc, IBakedModel baseModel) {
+    public static IBakedModel loadAndBake(ResourceLocation modelLoc, ResourceLocation propertiesLoc, IBakedModel baseModel, @Nullable ResourceLocation citTextureLoc) {
         IResourceManager rm = Minecraft.getMinecraft().getResourceManager();
         TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
 
@@ -75,6 +75,17 @@ public class CITModelLoader {
                 String spriteName = texLoc.getNamespace() + ":" + texLoc.getPath();
                 TextureAtlasSprite sprite = textureMap.getAtlasSprite(spriteName);
                 if (sprite != null) spriteMap.put(key, sprite);
+            }
+        }
+
+        if (citTextureLoc != null) {
+            String citNamespace = citTextureLoc.getNamespace();
+            String citPath = citTextureLoc.getPath();
+            if (citPath.endsWith(".png")) citPath = citPath.substring(0, citPath.length() - 4);
+            String spriteName = citNamespace + ":" + citPath;
+            TextureAtlasSprite citSprite = textureMap.getAtlasSprite(spriteName);
+            if (citSprite != null && !citSprite.getIconName().equals("missingno")) {
+                spriteMap.replaceAll((k, v) -> citSprite);
             }
         }
 

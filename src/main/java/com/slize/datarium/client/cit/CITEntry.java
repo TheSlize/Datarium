@@ -358,4 +358,5 @@ public class CITEntry {
     public boolean isGlintBlur() { return glintBlur; }
     public boolean isGlintUseGlint() { return glintUseGlint; }
     public String getGlintBlend() { return glintBlend; }
+    public List<NBTCondition> getNbtConditions() { return nbtConditions; }
 }

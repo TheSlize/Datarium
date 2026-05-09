@@ -45,7 +45,13 @@ public class CITManager {
             scanPack(pack);
         }
 
-        entries.sort((a, b) -> Integer.compare(b.getWeight(), a.getWeight()));
+        entries.sort((a, b) -> {
+            int weightCmp = Integer.compare(b.getWeight(), a.getWeight());
+            if (weightCmp != 0) return weightCmp;
+            int specA = datariumSpecificity(a);
+            int specB = datariumSpecificity(b);
+            return Integer.compare(specB, specA);
+        });
 
         DatariumMain.LOGGER.info("Datarium: Loaded {} CIT entries", entries.size());
     }
@@ -485,6 +491,14 @@ public class CITManager {
     public static List<CITEntry> getEntries() {
         if (!loaded) reload();
         return Collections.unmodifiableList(entries);
+    }
+
+    private static int datariumSpecificity(CITEntry entry) {
+        int score = 0;
+        for (CITEntry.NBTCondition cond : entry.getNbtConditions()) {
+            score += cond.matchValue.length();
+        }
+        return score;
     }
 
     public static Set<ResourceLocation> getAllCITTextures() {

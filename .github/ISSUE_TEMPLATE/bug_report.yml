@@ -1,0 +1,108 @@
+name: Bug Report
+description: Report a bug or crash in Datarium
+title: "[BUG] "
+labels:
+  - bug
+body:
+  - type: checkboxes
+    id: latest_build_check
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have verified that this bug is **still present in the [latest build of Datarium](https://github.com/TheSlize/Datarium/releases/latest)**.
+          required: true
+
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the bug.
+      placeholder: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: crash_log
+    attributes:
+      label: Crash Log
+      description: If the bug causes a crash, provide the crash log as a file attachment or a link (e.g. Pastebin, GitHub Gist). Leave blank if not applicable.
+    validations:
+      required: false
+
+  - type: input
+    id: datarium_version
+    attributes:
+      label: Datarium Version
+    validations:
+      required: true
+
+  - type: input
+    id: forge_version
+    attributes:
+      label: Minecraft Forge Version
+    validations:
+      required: true
+
+  - type: input
+    id: java_version
+    attributes:
+      label: Java Version
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Is this a modpack / mod compatibility issue?
+      description: Is this bug reproducible with ONLY Datarium installed, or does it require other mods?
+      options:
+        - "No — reproducible with only Datarium installed"
+        - "Yes — this is a mod compatibility issue"
+    validations:
+      required: true
+
+  - type: textarea
+    id: mod_list
+    attributes:
+      label: Mod List
+      description: "**Required only if this is a mod compatibility issue.** List all installed mods (name + version)."
+      placeholder: |
+        - ExampleMod 1.0.0
+        - AnotherMod 2.3.1
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or information.
+    validations:
+      required: false

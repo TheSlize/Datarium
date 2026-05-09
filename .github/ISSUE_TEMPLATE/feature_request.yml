@@ -1,0 +1,57 @@
+name: Feature Request
+description: Suggest a new feature or improvement for Datarium
+title: "[FEATURE] "
+labels:
+  - enhancement
+body:
+  - type: checkboxes
+    id: latest_build_check
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have verified that this feature is **not already present in the [latest build of Datarium](https://github.com/TheSlize/Datarium/releases/latest)**.
+          required: true
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of what you want added or changed. Explain *what* is missing and *why* it would be useful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Problem / Motivation
+      description: Is your feature request related to a problem? Describe it.
+      placeholder: "I can't do X because..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution
+      description: Describe how you'd like the feature to work. Be as specific as possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: modern_analogues
+    attributes:
+      label: Analogues in Modern Versions (1.20 / 1.21)
+      description: Does this feature exist in Minecraft 1.20 or 1.21 — in vanilla or in a mod? Name the mod(s) or vanilla mechanic, and briefly describe how it works there.
+      placeholder: |
+        1.20 — ExampleMod (link): brief description
+        1.21 — Vanilla mechanic: brief description
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other context, mockups, screenshots, or references.
+    validations:
+      required: false

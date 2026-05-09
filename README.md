@@ -5,7 +5,7 @@
 
 <p align="center"><img src="./github/images/icon.png" alt="Logo" width="500"></p>
 <h1 align="center">
-An unified mod planned to support modern resourcepacks/datapacks back on 1.12.
+An unified mod planned to support modern resourcepacks/datapacks back on 1.12.2.
 </h1>
 
 > [!IMPORTANT]

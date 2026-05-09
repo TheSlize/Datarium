@@ -46,6 +46,9 @@ public abstract class MixinTextureMap {
                 String spritePath = texLoc.getPath().endsWith(".png")
                         ? texLoc.getPath().substring(0, texLoc.getPath().length() - 4)
                         : texLoc.getPath();
+                if (spritePath.startsWith("textures/")) {
+                    spritePath = spritePath.substring("textures/".length());
+                }
                 String spriteName = texLoc.getNamespace() + ":" + spritePath;
                 CITAtlasSprite sprite = new CITAtlasSprite(spriteName, texLoc);
                 setTextureEntry(sprite);

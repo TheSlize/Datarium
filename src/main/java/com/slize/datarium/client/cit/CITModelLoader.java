@@ -54,25 +54,12 @@ public class CITModelLoader {
                 String key = e.getKey();
                 String texPath = e.getValue().getAsString();
                 if (texPath.startsWith("#")) continue;
-
-                ResourceLocation texLoc;
-                if (texPath.startsWith("./")) {
-                    String dir = propertiesLoc.getPath();
-                    int slash = dir.lastIndexOf('/');
-                    String folder = slash >= 0 ? dir.substring(0, slash + 1) : "";
-                    String rel = texPath.substring(2);
-                    if (rel.endsWith(".png")) rel = rel.substring(0, rel.length() - 4);
-                    texLoc = new ResourceLocation(propertiesLoc.getNamespace(), folder + rel);
-                } else if (texPath.contains(":")) {
-                    String[] parts = texPath.split(":", 2);
-                    String p = parts[1].endsWith(".png") ? parts[1].substring(0, parts[1].length() - 4) : parts[1];
-                    texLoc = new ResourceLocation(parts[0], p);
-                } else {
-                    String p = texPath.endsWith(".png") ? texPath.substring(0, texPath.length() - 4) : texPath;
-                    texLoc = new ResourceLocation(propertiesLoc.getNamespace(), p);
+                if (!texPath.contains(":") && !texPath.startsWith("assets") && !texPath.startsWith("./") && !texPath.startsWith("../")) {
+                    texPath = "minecraft:" + texPath;
                 }
-
-                String spriteName = texLoc.getNamespace() + ":" + texLoc.getPath();
+                ResourceLocation texLoc = CITManager.resolveAssetPath(propertiesLoc, texPath, ".png");
+                if (texLoc == null) continue;
+                String spriteName = texLoc.getNamespace() + ":" + (texLoc.getPath().endsWith(".png") ? texLoc.getPath().substring(0, texLoc.getPath().length() - 4) : texLoc.getPath());
                 TextureAtlasSprite sprite = textureMap.getAtlasSprite(spriteName);
                 if (sprite != null) spriteMap.put(key, sprite);
             }

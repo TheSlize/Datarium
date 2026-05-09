@@ -403,7 +403,7 @@ public class CITManager {
                         texLoc = resolveAssetPath(entry.getPropertiesLocation(), texPath, ".png");
                     } else {
                         String p = texPath.endsWith(".png") ? texPath : texPath + ".png";
-                        texLoc = new ResourceLocation(entry.getPropertiesLocation().getNamespace(), "textures/" + p);
+                        texLoc = new ResourceLocation("minecraft", "textures/" + p);
                     }
                     if (texLoc != null) result.add(texLoc);
                 }

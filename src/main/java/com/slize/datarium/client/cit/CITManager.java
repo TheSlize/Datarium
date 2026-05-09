@@ -15,15 +15,46 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class CITManager {
+
+    private static final ConcurrentHashMap<Long, CITEntry> matchCache = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Long, List<CITEntry>> matchTypeCache = new ConcurrentHashMap<>();
+
+    private static long stackCacheKey(ItemStack stack, CITEntry.Hand hand) {
+        int itemId = Item.getIdFromItem(stack.getItem());
+        int damage = stack.getItemDamage();
+        int count = stack.getCount();
+        int nbtHash = stack.hasTagCompound() ? stack.getTagCompound().hashCode() : 0;
+        int handOrd = hand.ordinal();
+        return ((long)(itemId & 0xFFFF) << 48)
+                | ((long)(damage & 0xFFFF) << 32)
+                | ((long)(count   & 0xFF)  << 24)
+                | ((long)(handOrd & 0xFF)  << 16)
+                | ((long)(nbtHash & 0xFFFF));
+    }
+
+    private static long stackTypeCacheKey(ItemStack stack, CITEntry.CITType type) {
+        int itemId = Item.getIdFromItem(stack.getItem());
+        int damage = stack.getItemDamage();
+        int nbtHash = stack.hasTagCompound() ? stack.getTagCompound().hashCode() : 0;
+        int typeOrd = type.ordinal();
+        return ((long)(itemId & 0xFFFF) << 48)
+                | ((long)(damage & 0xFFFF) << 32)
+                | ((long)(typeOrd & 0xFF)  << 24)
+                | ((long)(nbtHash & 0xFFFF));
+    }
+
     private static final List<CITEntry> entries = new ArrayList<>();
     private static boolean loaded = false;
 
     public static void reload() {
         entries.clear();
+        matchCache.clear();
+        matchTypeCache.clear();
         loaded = true;
 
         List<IResourcePack> packs = new ArrayList<>();
@@ -468,24 +499,33 @@ public class CITManager {
     @Nullable
     public static CITEntry getMatch(ItemStack stack, CITEntry.Hand hand) {
         if (!loaded) reload();
+        long key = stackCacheKey(stack, hand);
+        if (matchCache.containsKey(key)) return matchCache.get(key);
+        CITEntry result = null;
         for (CITEntry entry : entries) {
-            if (entry.matches(stack, hand)) return entry;
+            if (entry.matches(stack, hand)) { result = entry; break; }
         }
-        return null;
+        if (result != null) matchCache.put(key, result);
+        return result;
     }
 
     public static List<CITEntry> getMatchesOfType(ItemStack stack, CITEntry.CITType type) {
         if (!loaded) reload();
+        long key = stackTypeCacheKey(stack, type);
+        if (matchTypeCache.containsKey(key)) return matchTypeCache.get(key);
         List<CITEntry> result = new ArrayList<>();
         for (CITEntry entry : entries) {
             if (entry.getCITType() == type && entry.matches(stack)) result.add(entry);
         }
+        matchTypeCache.put(key, result);
         return result;
     }
 
     public static void invalidate() {
         loaded = false;
         entries.clear();
+        matchCache.clear();
+        matchTypeCache.clear();
     }
 
     public static List<CITEntry> getEntries() {

@@ -57,3 +57,7 @@ Hopefully I'll be able to finish most of the work by the end of 2026.
 **Q:** Why not make your mod on Forge instead of Cleanroom?
 
 **A:** 1.12 has enough limitations and rendering quirks already. I don't want Java itself to be the limitation. Also I believe that Cleanroom is the future for 1.12.2.
+
+**Q:** Was AI used to make the mod? If yes - why?
+
+**A:** Yes. Though I use AI as an **instrument**, not as my **replacement**. That's important to know. Believe me, AI tends to hallucinate and do quite stupid mistakes, and if I were that bad at coding just because of AI usage that mod wouldn't ever come out.

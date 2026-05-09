@@ -1,6 +1,5 @@
 package com.slize.datarium.client.cit;
 
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.resources.IResource;
@@ -8,7 +7,6 @@ import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.data.AnimationFrame;
 import net.minecraft.client.resources.data.AnimationMetadataSection;
 import net.minecraft.util.ResourceLocation;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -23,9 +21,6 @@ public class CITAtlasSprite extends TextureAtlasSprite {
     private static final int MAX_MIPMAP_LEVELS = 5;
 
     private static final Field ANIMATION_METADATA_FIELD;
-
-    private boolean standalone = false;
-    private int standaloneGlTextureId = -1;
 
     static {
         Field field = null;
@@ -48,14 +43,6 @@ public class CITAtlasSprite extends TextureAtlasSprite {
         this.actualTexturePath = actualTexturePath;
     }
 
-    public boolean isStandalone() {
-        return standalone;
-    }
-
-    public int getStandaloneGlTextureId() {
-        return standaloneGlTextureId;
-    }
-
     @Override
     public boolean hasCustomLoader(IResourceManager manager, ResourceLocation location) {
         return true;
@@ -76,16 +63,6 @@ public class CITAtlasSprite extends TextureAtlasSprite {
             this.height = animMeta != null ? imgWidth : imgHeight;
 
             int[] pixels = new int[imgWidth * imgHeight];
-
-            if (imgWidth > 256 || imgHeight > 256) {
-                this.standalone = true;
-                uploadStandaloneTexture(image);
-                int[][] pixelData = new int[MAX_MIPMAP_LEVELS][];
-                pixelData[0] = pixels;
-                this.framesTextureData.add(pixelData);
-                return false;
-            }
-
             image.getRGB(0, 0, imgWidth, imgHeight, pixels, 0, imgWidth);
 
             if (animMeta == null) {
@@ -170,48 +147,5 @@ public class CITAtlasSprite extends TextureAtlasSprite {
         while (this.framesTextureData.size() <= index) {
             this.framesTextureData.add(null);
         }
-    }
-
-    @Override
-    public float getMinU() {
-        return standalone ? 0.0f : super.getMinU();
-    }
-
-    @Override
-    public float getMaxU() {
-        return standalone ? 1.0f : super.getMaxU();
-    }
-
-    @Override
-    public float getMinV() {
-        return standalone ? 0.0f : super.getMinV();
-    }
-
-    @Override
-    public float getMaxV() {
-        return standalone ? 1.0f : super.getMaxV();
-    }
-
-    @Override
-    public float getInterpolatedU(double u) {
-        return standalone ? (float)(u / 16.0) : super.getInterpolatedU(u);
-    }
-
-    @Override
-    public float getInterpolatedV(double v) {
-        return standalone ? (float)(v / 16.0) : super.getInterpolatedV(v);
-    }
-
-    @Override
-    public void generateMipmaps(int level) {
-        if (standalone) return;
-        super.generateMipmaps(level);
-    }
-
-    private void uploadStandaloneTexture(BufferedImage image) {
-        if (standaloneGlTextureId != -1) return;
-        standaloneGlTextureId = GL11.glGenTextures();
-        GlStateManager.bindTexture(standaloneGlTextureId);
-        TextureUtil.uploadTextureImageAllocate(standaloneGlTextureId, image, false, false);
     }
 }

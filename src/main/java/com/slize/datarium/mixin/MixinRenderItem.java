@@ -1,13 +1,14 @@
 package com.slize.datarium.mixin;
 
-import com.slize.datarium.client.cit.*;
+import com.slize.datarium.client.cit.CITEntry;
+import com.slize.datarium.client.cit.CITManager;
+import com.slize.datarium.client.cit.GlobalCITProperties;
 import com.slize.datarium.util.DatariumContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -140,19 +141,6 @@ public class MixinRenderItem {
         GlStateManager.enableLighting();
         GlStateManager.depthFunc(515);
         GlStateManager.depthMask(true);
-    }
-
-    @Inject(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V",
-            at = @At("HEAD"))
-    private void datarium$bindStandaloneTexture(ItemStack stack, IBakedModel model, CallbackInfo ci) {
-        if (model instanceof CITBakedModel) {
-            TextureAtlasSprite sprite = ((CITBakedModel) model).getCITSprite();
-            if (sprite instanceof CITAtlasSprite cit) {
-                if (cit.isStandalone() && cit.getStandaloneGlTextureId() != -1) {
-                    GlStateManager.bindTexture(cit.getStandaloneGlTextureId());
-                }
-            }
-        }
     }
 
     @Unique

@@ -155,8 +155,4 @@ public class CITBakedModel implements IBakedModel {
 
         return Pair.of(new CITBakedModel(resultModel, citSprite), pair.getRight());
     }
-
-    public TextureAtlasSprite getCITSprite() {
-        return citSprite;
-    }
 }

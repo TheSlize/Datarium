@@ -45,15 +45,6 @@ public class CITModelLoader {
             return null;
         }
 
-        // Parse texture_size for UV scaling
-        float texScaleU = 1f, texScaleV = 1f;
-        if (json.has("texture_size")) {
-            var arr = json.getAsJsonArray("texture_size");
-            float w = arr.get(0).getAsFloat();
-            float h = arr.get(1).getAsFloat();
-            texScaleU = 16f / w;
-            texScaleV = 16f / h;
-        }
 
         // Resolve textures map: "#0" -> actual sprite
         Map<String, TextureAtlasSprite> spriteMap = new HashMap<>();
@@ -110,7 +101,7 @@ public class CITModelLoader {
                     net.minecraft.util.EnumFacing.Axis axis = net.minecraft.util.EnumFacing.Axis.valueOf(
                             rot.get("axis").getAsString().toUpperCase());
                     float[] origin = jsonArrayToFloats(rot.getAsJsonArray("origin"));
-                    org.lwjgl.util.vector.Vector3f originVec = new org.lwjgl.util.vector.Vector3f(origin[0], origin[1], origin[2]);
+                    org.lwjgl.util.vector.Vector3f originVec = new org.lwjgl.util.vector.Vector3f(origin[0] / 16f, origin[1] / 16f, origin[2] / 16f);
                     rotation = new BlockPartRotation(originVec, axis, angle, false);
                 }
 
@@ -136,10 +127,6 @@ public class CITModelLoader {
                     float[] uv;
                     if (faceJson.has("uv")) {
                         uv = jsonArrayToFloats(faceJson.getAsJsonArray("uv"));
-                        uv[0] *= texScaleU;
-                        uv[1] *= texScaleV;
-                        uv[2] *= texScaleU;
-                        uv[3] *= texScaleV;
                     } else {
                         uv = new float[]{0, 0, 16, 16};
                     }

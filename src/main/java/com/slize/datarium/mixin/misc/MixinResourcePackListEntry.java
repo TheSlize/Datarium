@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.misc;
 
 import com.google.gson.JsonObject;
 import com.slize.datarium.client.gui.GuiRespackOpts;
@@ -28,14 +28,14 @@ public abstract class MixinResourcePackListEntry {
     private static final ResourceLocation CONFIG_BUTTON_TEXTURE = new ResourceLocation("datarium", "textures/gui/configure_button.png");
 
     @Unique
-    private boolean hasRespackOpts = false;
+    private boolean datarium$hasRespackOpts = false;
     @Unique
-    private boolean checkedRespackOpts = false;
+    private boolean datarium$checkedRespackOpts = false;
     @Unique
-    private JsonObject cachedConfig = null;
+    private JsonObject datarium$cachedConfig = null;
 
     @Unique
-    private IResourcePack getPack() {
+    private IResourcePack datarium$getPack() {
         if ((Object) this instanceof ResourcePackListEntryFound) {
             return ((ResourcePackListEntryFound)(Object)this).getResourcePackEntry().getResourcePack();
         }
@@ -44,16 +44,16 @@ public abstract class MixinResourcePackListEntry {
 
     @Inject(method = "drawEntry", at = @At("RETURN"))
     public void onDrawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks, CallbackInfo ci) {
-        if (!checkedRespackOpts) {
-            IResourcePack pack = getPack();
+        if (!datarium$checkedRespackOpts) {
+            IResourcePack pack = datarium$getPack();
             if (pack != null) {
-                this.cachedConfig = RespackOptsManager.getPackConfiguration(pack);
-                this.hasRespackOpts = (this.cachedConfig != null);
+                this.datarium$cachedConfig = RespackOptsManager.getPackConfiguration(pack);
+                this.datarium$hasRespackOpts = (this.datarium$cachedConfig != null);
             }
-            checkedRespackOpts = true;
+            datarium$checkedRespackOpts = true;
         }
 
-        if (this.hasRespackOpts) {
+        if (this.datarium$hasRespackOpts) {
             this.mc.getTextureManager().bindTexture(CONFIG_BUTTON_TEXTURE);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.enableBlend();
@@ -75,10 +75,10 @@ public abstract class MixinResourcePackListEntry {
 
     @Inject(method = "mousePressed", at = @At("HEAD"), cancellable = true)
     public void onMousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY, CallbackInfoReturnable<Boolean> cir) {
-        if (this.hasRespackOpts && this.cachedConfig != null) {
+        if (this.datarium$hasRespackOpts && this.datarium$cachedConfig != null) {
             if (relativeX > 160 && relativeY >= 0 && relativeY <= 32) {
                 this.mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.getMasterRecord(net.minecraft.init.SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                this.mc.displayGuiScreen(new GuiRespackOpts(this.mc.currentScreen, getPack(), this.cachedConfig));
+                this.mc.displayGuiScreen(new GuiRespackOpts(this.mc.currentScreen, datarium$getPack(), this.datarium$cachedConfig));
                 cir.setReturnValue(true);
             }
         }

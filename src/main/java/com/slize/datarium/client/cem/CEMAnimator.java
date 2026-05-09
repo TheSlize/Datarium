@@ -29,13 +29,13 @@ public class CEMAnimator {
                     CEMExpression expr = CEMExpressionParser.parse(exprStr);
                     compiledExpressions.put(key, expr);
                     evaluationOrder.add(key);
-                    DatariumMain.LOGGER.debug("[CEM] Compiled animation: {} = {}", key, exprStr);
+                    //DatariumMain.LOGGER.debug("[CEM] Compiled animation: {} = {}", key, exprStr);
                 } catch (Exception e) {
                     DatariumMain.LOGGER.warn("[CEM] Failed to compile expression: {} = {}", key, exprStr, e);
                 }
             }
         }
-        DatariumMain.LOGGER.info("[CEM] Compiled {} expressions", compiledExpressions.size());
+        //DatariumMain.LOGGER.info("[CEM] Compiled {} expressions", compiledExpressions.size());
     }
 
     public void evaluate(CEMRenderContext ctx, Map<String, CEMPartTransform> transforms) {
@@ -60,10 +60,9 @@ public class CEMAnimator {
 
                     CEMPartTransform transform = transforms.computeIfAbsent(partId, k -> new CEMPartTransform());
                     applyPropertyToTransform(transform, property, value);
-                    if(System.currentTimeMillis() % 10 == 0) DatariumMain.LOGGER.debug("[CEM] Animation target: {} property: {} value: {}", partId, property, value);
+                    //if(System.currentTimeMillis() % 10 == 0) DatariumMain.LOGGER.debug("[CEM] Animation target: {} property: {} value: {}", partId, property, value);
                 }
-            } catch (Exception e) {
-                // Silently ignore evaluation errors during gameplay
+            } catch (Exception ignored) {
             }
         }
     }

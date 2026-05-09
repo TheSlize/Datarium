@@ -14,7 +14,16 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class CITEntry {
+
+public record CITEntry(ResourceLocation propertiesLocation, CITType citType, List<Item> items, ResourceLocation texture,
+                       ResourceLocation model, Map<String, ResourceLocation> subTextures,
+                       Map<String, ResourceLocation> subModels, int weight, Integer damage, Integer damageMin,
+                       Integer damageMax, boolean damagePercent, Integer damageMask, Integer stackSize,
+                       Integer stackSizeMin, Integer stackSizeMax, Hand hand, Map<Enchantment, int[]> enchantments,
+                       List<NBTCondition> nbtConditions, int glintLayer, float glintSpeed, float glintRotation,
+                       float glintR, float glintG, float glintB, float glintA, boolean glintBlur, boolean glintUseGlint,
+                       String glintBlend) {
+
     public enum MatchType {
         EXACT, PATTERN, IPATTERN, REGEX, IREGEX
     }
@@ -41,13 +50,17 @@ public class CITEntry {
             MatchType mt = MatchType.EXACT;
             String mv = rawValue;
             if (rawValue.startsWith("ipattern:")) {
-                mt = MatchType.IPATTERN; mv = rawValue.substring("ipattern:".length());
+                mt = MatchType.IPATTERN;
+                mv = rawValue.substring("ipattern:".length());
             } else if (rawValue.startsWith("pattern:")) {
-                mt = MatchType.PATTERN; mv = rawValue.substring("pattern:".length());
+                mt = MatchType.PATTERN;
+                mv = rawValue.substring("pattern:".length());
             } else if (rawValue.startsWith("iregex:")) {
-                mt = MatchType.IREGEX; mv = rawValue.substring("iregex:".length());
+                mt = MatchType.IREGEX;
+                mv = rawValue.substring("iregex:".length());
             } else if (rawValue.startsWith("regex:")) {
-                mt = MatchType.REGEX; mv = rawValue.substring("regex:".length());
+                mt = MatchType.REGEX;
+                mv = rawValue.substring("regex:".length());
             }
             this.matchType = mt;
             this.matchValue = mv;
@@ -67,47 +80,13 @@ public class CITEntry {
                 switch (c) {
                     case '*' -> sb.append(".*");
                     case '?' -> sb.append(".");
-                    case '.', '(', ')', '+', '|', '^', '$', '@', '%', '[', ']', '{', '}', '\\'
-                            -> sb.append("\\").append(c);
+                    case '.', '(', ')', '+', '|', '^', '$', '@', '%', '[', ']', '{', '}', '\\' -> sb.append("\\").append(c);
                     default -> sb.append(c);
                 }
             }
             return sb.append("$").toString();
         }
     }
-
-    private final ResourceLocation propertiesLocation;
-    private final CITType citType;
-    private final List<Item> items;
-    private final ResourceLocation texture;
-    private final ResourceLocation model;
-    private final Map<String, ResourceLocation> subTextures;
-    private final Map<String, ResourceLocation> subModels;
-    private final int weight;
-    // damage
-    private final Integer damage;
-    private final Integer damageMin;
-    private final Integer damageMax;
-    private final boolean damagePercent;
-    private final Integer damageMask;
-    // stackSize
-    private final Integer stackSize;
-    private final Integer stackSizeMin;
-    private final Integer stackSizeMax;
-    // hand
-    private final Hand hand;
-    // enchantments
-    private final Map<Enchantment, int[]> enchantments;
-    // nbt
-    private final List<NBTCondition> nbtConditions;
-
-    private final int glintLayer;
-    private final float glintSpeed;
-    private final float glintRotation;
-    private final float glintR, glintG, glintB, glintA;
-    private final boolean glintBlur;
-    private final boolean glintUseGlint;
-    private final String glintBlend;
 
     public CITEntry(ResourceLocation propertiesLocation, CITType citType, List<Item> items,
                     @Nullable ResourceLocation texture, @Nullable ResourceLocation model,
@@ -195,7 +174,7 @@ public class CITEntry {
 
         // enchantments
         if (enchantments != null && !enchantments.isEmpty()) {
-            if (!matchesEnchantments(stack)) return false;
+            return matchesEnchantments(stack);
         }
 
         return true;
@@ -248,7 +227,8 @@ public class CITEntry {
             try {
                 ITextComponent comp = ITextComponent.Serializer.jsonToComponent(raw);
                 if (comp != null) return comp.getUnformattedComponentText();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         // Strip surrounding quotes for NBTTagString
         if (nbt instanceof NBTTagString nbtstr) {
@@ -260,8 +240,7 @@ public class CITEntry {
     private boolean matchString(String value, NBTCondition cond) {
         return switch (cond.matchType) {
             case EXACT -> value.equals(cond.matchValue);
-            case PATTERN, IPATTERN, REGEX, IREGEX ->
-                    cond.pattern != null && cond.pattern.matcher(value).matches();
+            case PATTERN, IPATTERN, REGEX, IREGEX -> cond.pattern != null && cond.pattern.matcher(value).matches();
         };
     }
 
@@ -288,7 +267,6 @@ public class CITEntry {
                     if (matchWildcardRecursive(list.get(i), parts, idx + 1, cond)) return true;
                 }
             }
-            return false;
         } else {
             if (current instanceof NBTTagCompound compound) {
                 NBTBase next = compound.getTag(part);
@@ -298,10 +276,11 @@ public class CITEntry {
                     int i = Integer.parseInt(part);
                     if (i >= 0 && i < list.tagCount())
                         return matchWildcardRecursive(list.get(i), parts, idx + 1, cond);
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                }
             }
-            return false;
         }
+        return false;
     }
 
     // Override matches to route wildcard nbt correctly
@@ -340,23 +319,7 @@ public class CITEntry {
         return true;
     }
 
-    public ResourceLocation getTexture() { return texture; }
-    public ResourceLocation getModel() { return model; }
-    public Map<String, ResourceLocation> getSubTextures() { return subTextures; }
-    public Map<String, ResourceLocation> getSubModels() { return subModels; }
-    public ResourceLocation getPropertiesLocation() { return propertiesLocation; }
-    public int getWeight() { return weight; }
-    public CITType getCITType() { return citType; }
-
-    public int getGlintLayer() { return glintLayer; }
-    public float getGlintSpeed() { return glintSpeed; }
-    public float getGlintRotation() { return glintRotation; }
-    public float getGlintR() { return glintR; }
-    public float getGlintG() { return glintG; }
-    public float getGlintB() { return glintB; }
-    public float getGlintA() { return glintA; }
-    public boolean isGlintBlur() { return glintBlur; }
-    public boolean isGlintUseGlint() { return glintUseGlint; }
-    public String getGlintBlend() { return glintBlend; }
-    public List<NBTCondition> getNbtConditions() { return nbtConditions; }
+    public CITType getCITType() {
+        return citType;
+    }
 }

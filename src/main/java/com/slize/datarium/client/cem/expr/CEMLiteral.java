@@ -1,11 +1,8 @@
 package com.slize.datarium.client.cem.expr;
 
-public class CEMLiteral implements CEMExpression {
-    private final double value;
+import org.jetbrains.annotations.NotNull;
 
-    public CEMLiteral(double value) {
-        this.value = value;
-    }
+public record CEMLiteral(double value) implements CEMExpression {
 
     @Override
     public double evaluate(CEMRenderContext ctx) {
@@ -13,7 +10,7 @@ public class CEMLiteral implements CEMExpression {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return String.valueOf(value);
     }
 }

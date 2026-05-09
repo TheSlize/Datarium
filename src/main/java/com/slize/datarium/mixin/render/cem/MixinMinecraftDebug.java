@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.cem;
 
 import com.slize.datarium.client.cem.CEMDebugSystem;
 import net.minecraft.client.Minecraft;

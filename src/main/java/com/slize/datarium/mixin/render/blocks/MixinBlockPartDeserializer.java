@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.blocks;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;

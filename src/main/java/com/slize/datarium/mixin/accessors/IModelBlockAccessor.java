@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.accessors;
 
 import net.minecraft.client.renderer.block.model.ItemOverride;
 import net.minecraft.client.renderer.block.model.ModelBlock;

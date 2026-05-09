@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.locale;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

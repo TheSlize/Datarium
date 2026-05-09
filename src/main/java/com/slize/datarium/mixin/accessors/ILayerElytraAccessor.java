@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.accessors;
 
 import net.minecraft.client.model.ModelElytra;
 import org.spongepowered.asm.mixin.Mixin;

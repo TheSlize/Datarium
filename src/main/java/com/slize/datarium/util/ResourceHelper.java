@@ -1,6 +1,5 @@
 package com.slize.datarium.util;
 
-import com.slize.datarium.DatariumMain;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import java.io.IOException;

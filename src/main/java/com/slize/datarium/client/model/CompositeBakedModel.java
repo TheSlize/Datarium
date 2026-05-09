@@ -14,12 +14,7 @@ import javax.vecmath.Matrix4f;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompositeBakedModel implements IBakedModel {
-    private final List<IBakedModel> models;
-
-    public CompositeBakedModel(List<IBakedModel> models) {
-        this.models = models;
-    }
+public record CompositeBakedModel(List<IBakedModel> models) implements IBakedModel {
 
     @Override
     public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand) {
@@ -70,8 +65,6 @@ public class CompositeBakedModel implements IBakedModel {
             Pair<? extends IBakedModel, Matrix4f> pair = model.handlePerspective(cameraTransformType);
             transformedModels.add(pair.getLeft());
 
-            // Fix: Prioritize the first non-null transform we find.
-            // This ensures if one model is missing/flat but another is 3D, we use the 3D transform.
             if (matrix == null && pair.getRight() != null) {
                 matrix = pair.getRight();
             }

@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.gui;
 
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
@@ -20,21 +20,21 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
     private static final ResourceLocation CUSTOM_PANORAMA = new ResourceLocation("minecraft", "textures/gui/title/background/panorama_overlay.png");
 
     @Unique
-    private boolean hasCustomPanorama;
+    private boolean datarium$hasCustomPanorama;
 
     @Inject(method = "initGui", at = @At("HEAD"))
     private void checkCustomPanoramaExistence(CallbackInfo ci) {
         try {
             this.mc.getResourceManager().getResource(CUSTOM_PANORAMA);
-            this.hasCustomPanorama = true;
+            this.datarium$hasCustomPanorama = true;
         } catch (IOException e) {
-            this.hasCustomPanorama = false;
+            this.datarium$hasCustomPanorama = false;
         }
     }
 
     @Inject(method = "renderSkybox", at = @At("HEAD"), cancellable = true)
     private void renderCustomBackground(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
-        if (this.hasCustomPanorama) {
+        if (this.datarium$hasCustomPanorama) {
             this.mc.getTextureManager().bindTexture(CUSTOM_PANORAMA);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             drawModalRectWithCustomSizedTexture(0, 0, 0, 0, this.width, this.height, this.width, this.height);
@@ -44,7 +44,7 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
 
     @Redirect(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiMainMenu;drawGradientRect(IIIIII)V"))
     private void removeVanillaGradients(GuiMainMenu instance, int left, int top, int right, int bottom, int startColor, int endColor) {
-        if (!this.hasCustomPanorama) {
+        if (!this.datarium$hasCustomPanorama) {
             this.drawGradientRect(left, top, right, bottom, startColor, endColor);
         }
     }

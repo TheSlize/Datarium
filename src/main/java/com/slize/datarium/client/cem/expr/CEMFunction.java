@@ -3,15 +3,8 @@ package com.slize.datarium.client.cem.expr;
 import java.util.List;
 import java.util.Random;
 
-public class CEMFunction implements CEMExpression {
-    private final String name;
-    private final List<CEMExpression> args;
+public record CEMFunction(String name, List<CEMExpression> args) implements CEMExpression {
     private static final Random RANDOM = new Random();
-
-    public CEMFunction(String name, List<CEMExpression> args) {
-        this.name = name;
-        this.args = args;
-    }
 
     @Override
     public double evaluate(CEMRenderContext ctx) {

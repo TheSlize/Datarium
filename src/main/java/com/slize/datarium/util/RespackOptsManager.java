@@ -1,7 +1,7 @@
 package com.slize.datarium.util;
 
 import com.google.gson.*;
-import com.slize.datarium.mixin.IAbstractResourcePackAccessor;
+import com.slize.datarium.mixin.accessors.IAbstractResourcePackAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.AbstractResourcePack;
 import net.minecraft.client.resources.IResourcePack;

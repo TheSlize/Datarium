@@ -11,7 +11,6 @@ import java.util.Set;
 public class ModMixinConfigPlugin implements IMixinConfigPlugin {
     @Override
     public void onLoad(String s) {
-
     }
 
     @Override
@@ -29,15 +28,11 @@ public class ModMixinConfigPlugin implements IMixinConfigPlugin {
      */
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        return switch (mixinClassName.split("\\.")[5]) {
-            case "hei" -> Loader.isModLoaded("jei");
-            default -> true;
-        };
+        return true;
     }
 
     @Override
     public void acceptTargets(Set<String> set, Set<String> set1) {
-
     }
 
     @Override
@@ -47,11 +42,9 @@ public class ModMixinConfigPlugin implements IMixinConfigPlugin {
 
     @Override
     public void preApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
-
     }
 
     @Override
     public void postApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
-
     }
 }

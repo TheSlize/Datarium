@@ -1,6 +1,5 @@
 package com.slize.datarium.client.cem;
 
-import com.slize.datarium.DatariumMain;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 
@@ -49,7 +48,7 @@ public class CEMPartMapping {
         CEM_TO_FIELD_NAMES.put("creeperArmor", new String[]{"creeperArmor", "field_78127_g"});
     }
 
-    public static Map<String, ModelRenderer> mapParts(ModelBase model, String entityModelName) {
+    public static Map<String, ModelRenderer> mapParts(ModelBase model) {
         Map<String, ModelRenderer> result = new HashMap<>();
 
         if (model == null) {
@@ -72,8 +71,7 @@ public class CEMPartMapping {
                     if (renderer != null) {
                         allFields.put(field.getName(), renderer);
                     }
-                } catch (Exception e) {
-                    // Ignore
+                } catch (Exception ignored) {
                 }
             }
             current = current.getSuperclass();
@@ -88,13 +86,13 @@ public class CEMPartMapping {
                 ModelRenderer renderer = allFields.get(fieldName);
                 if (renderer != null && !result.containsKey(cemPartName)) {
                     result.put(cemPartName, renderer);
-                    DatariumMain.LOGGER.debug("[CEM] Mapped CEM part '{}' -> field '{}'", cemPartName, fieldName);
+                    //DatariumMain.LOGGER.debug("[CEM] Mapped CEM part '{}' -> field '{}'", cemPartName, fieldName);
                     break;
                 }
             }
         }
 
-        DatariumMain.LOGGER.info("[CEM] Mapped {} parts for model {}", result.size(), model.getClass().getSimpleName());
+        //DatariumMain.LOGGER.info("[CEM] Mapped {} parts for model {}", result.size(), model.getClass().getSimpleName());
 
         return result;
     }

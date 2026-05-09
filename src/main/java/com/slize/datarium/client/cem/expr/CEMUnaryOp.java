@@ -1,18 +1,6 @@
 package com.slize.datarium.client.cem.expr;
 
-public class CEMUnaryOp implements CEMExpression {
-    public enum Op {
-        NEG, NOT
-    }
-
-    private final Op op;
-    private final CEMExpression operand;
-
-    public CEMUnaryOp(Op op, CEMExpression operand) {
-        this.op = op;
-        this.operand = operand;
-    }
-
+public record CEMUnaryOp(Op op, CEMExpression operand) implements CEMExpression {
     @Override
     public double evaluate(CEMRenderContext ctx) {
         double val = operand.evaluate(ctx);
@@ -20,5 +8,9 @@ public class CEMUnaryOp implements CEMExpression {
             case NEG -> -val;
             case NOT -> val == 0 ? 1 : 0;
         };
+    }
+
+    public enum Op {
+        NEG, NOT
     }
 }

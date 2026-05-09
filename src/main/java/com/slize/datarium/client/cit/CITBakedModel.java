@@ -41,7 +41,6 @@ public class CITBakedModel implements IBakedModel {
         // We provide the texture mapping so the generator knows which sprite to use.
         ModelBlock dummy = new ModelBlock(null, new ArrayList<>(), textures, false, false, ItemCameraTransforms.DEFAULT, new ArrayList<>());
 
-        // Use vanilla generator to create the 3D shape (elements)
         ItemModelGenerator generator = new ItemModelGenerator();
         TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
         ModelBlock result = generator.makeItemModel(textureMap, dummy);
@@ -57,7 +56,6 @@ public class CITBakedModel implements IBakedModel {
         for (BlockPart part : result.getElements()) {
             for (EnumFacing side : part.mapFaces.keySet()) {
                 BlockPartFace face = part.mapFaces.get(side);
-                // We use the citSprite for all faces generated from layer0
                 quads.add(bakery.makeBakedQuad(part.positionFrom, part.positionTo, face, sprite, side, ModelRotation.X0_Y0, part.partRotation, false, true));
             }
         }
@@ -71,8 +69,7 @@ public class CITBakedModel implements IBakedModel {
             return baseModel.getQuads(state, side, rand);
         }
 
-        // Strategy 1: Generated Model (Items/Tools)
-        // Use the newly generated quads that match the CIT texture's shape.
+        // Use the newly generated quads that match the CIT texture's shape
         if (cachedQuads != null) {
             if (side != null) {
                 return Collections.emptyList();
@@ -80,8 +77,7 @@ public class CITBakedModel implements IBakedModel {
             return cachedQuads;
         }
 
-        // Strategy 2: Retextured Model (Blocks)
-        // Retexture the existing geometry (e.g. for blocks) to preserve complex shapes.
+        // Or retexture the existing geometry (e.g. for blocks) to preserve complex shapes
         List<BakedQuad> originalQuads = baseModel.getQuads(state, side, rand);
         ImmutableList.Builder<BakedQuad> builder = ImmutableList.builder();
 

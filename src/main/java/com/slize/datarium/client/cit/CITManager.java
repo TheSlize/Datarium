@@ -1,6 +1,5 @@
 package com.slize.datarium.client.cit;
 
-import com.slize.datarium.DatariumMain;
 import com.slize.datarium.util.UndoFlattenUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.*;
@@ -78,14 +77,14 @@ public class CITManager {
         }
 
         entries.sort((a, b) -> {
-            int weightCmp = Integer.compare(b.getWeight(), a.getWeight());
+            int weightCmp = Integer.compare(b.weight(), a.weight());
             if (weightCmp != 0) return weightCmp;
             int specA = datariumSpecificity(a);
             int specB = datariumSpecificity(b);
             return Integer.compare(specB, specA);
         });
 
-        DatariumMain.LOGGER.info("Datarium: Loaded {} CIT entries", entries.size());
+        //DatariumMain.LOGGER.info("Datarium: Loaded {} CIT entries", entries.size());
     }
 
     private static void scanPack(IResourcePack pack) {
@@ -120,8 +119,7 @@ public class CITManager {
                     }
                 }
             }
-        } catch (Exception e) {
-            // Ignore errors for packs we can't read
+        } catch (Exception ignored) {
         }
     }
 
@@ -145,8 +143,7 @@ public class CITManager {
             if (assetsFolder.exists() && assetsFolder.isDirectory()) {
                 scanFolderRecursive(assetsFolder.toPath(), folder.toPath());
             }
-        } catch (Exception e) {
-            // Ignore errors
+        } catch (Exception ignored) {
         }
     }
 
@@ -164,13 +161,11 @@ public class CITManager {
                                 if (loc != null) {
                                     parseAndAddEntry(loc, content);
                                 }
-                            } catch (IOException e) {
-                                // Ignore
+                            } catch (IOException ignored) {
                             }
                         }
                     });
-        } catch (IOException e) {
-            // Ignore
+        } catch (IOException ignored) {
         }
     }
 
@@ -210,8 +205,6 @@ public class CITManager {
             default -> CITEntry.CITType.ITEM;
         };
 
-        // items
-        // items
         List<Item> items = new ArrayList<>();
         Integer translatedDamage = null;
 
@@ -249,32 +242,26 @@ public class CITManager {
             }
         }
 
-        // texture
         String textureStr = props.getProperty("texture", props.getProperty("tile", "")).trim();
         ResourceLocation texture = null;
         if (!textureStr.isEmpty()) {
             texture = resolveAssetPath(location, textureStr, ".png");
         }
 
-        // model
         String modelStr = props.getProperty("model", "").trim();
         ResourceLocation model = null;
         if (!modelStr.isEmpty()) {
             model = resolveAssetPath(location, modelStr, ".json");
         }
 
-        // auto-discovery: if neither texture nor model declared, look for same-named file
+        // if neither texture nor model declared, look for same-named file (I don't think it'll ever be the situation, but in case there are idiots)
         if (texture == null && model == null) {
             String path = location.getPath();
             String base = path.substring(0, path.lastIndexOf('.'));
             ResourceLocation autoModel = new ResourceLocation(location.getNamespace(), base + ".json");
             ResourceLocation autoTexture = new ResourceLocation(location.getNamespace(), base + ".png");
-            // We'll store both as candidates; at apply time check which exists
-            // For now store in texture/model fields — prefer model
             model = autoModel;
             texture = autoTexture;
-            // Mark as auto (we'll check existence at apply time in MixinItemOverrideList)
-            // We can use a convention: store both and let the mixin try model first, then texture
         }
 
         // sub textures: texture.<name>=...
@@ -292,11 +279,9 @@ public class CITManager {
             }
         }
 
-        // weight
         int weight = 0;
         try { weight = Integer.parseInt(props.getProperty("weight", "0").trim()); } catch (NumberFormatException ignored) {}
 
-        // damage
         Integer damage = null, damageMin = null, damageMax = null;
         boolean damagePercent = false;
         Integer damageMask = null;
@@ -325,7 +310,6 @@ public class CITManager {
             damage = translatedDamage;
         }
 
-        // stackSize
         Integer stackSize = null, stackSizeMin = null, stackSizeMax = null;
         String stackStr = props.getProperty("stackSize", "").trim();
         if (!stackStr.isEmpty()) {
@@ -433,7 +417,7 @@ public class CITManager {
 
     public static Set<ResourceLocation> collectModelTextures(CITEntry entry) {
         Set<ResourceLocation> result = new HashSet<>();
-        ResourceLocation modelLoc = entry.getModel();
+        ResourceLocation modelLoc = entry.model();
         if (modelLoc == null) return result;
 
         ResourceLocation jsonLoc = modelLoc.getPath().endsWith(".json") ? modelLoc
@@ -454,7 +438,7 @@ public class CITManager {
                         String p = parts[1].endsWith(".png") ? parts[1] : parts[1] + ".png";
                         texLoc = new ResourceLocation(parts[0], "textures/" + p);
                     } else if (texPath.startsWith("./") || texPath.startsWith("../") || !texPath.contains("/")) {
-                        texLoc = resolveAssetPath(entry.getPropertiesLocation(), texPath, ".png");
+                        texLoc = resolveAssetPath(entry.propertiesLocation(), texPath, ".png");
                     } else {
                         String p = texPath.endsWith(".png") ? texPath : texPath + ".png";
                         texLoc = new ResourceLocation("minecraft", "textures/" + p);
@@ -558,7 +542,7 @@ public class CITManager {
 
     private static int datariumSpecificity(CITEntry entry) {
         int score = 0;
-        for (CITEntry.NBTCondition cond : entry.getNbtConditions()) {
+        for (CITEntry.NBTCondition cond : entry.nbtConditions()) {
             score += cond.matchValue.length();
         }
         return score;
@@ -568,8 +552,8 @@ public class CITManager {
         if (!loaded) reload();
         Set<ResourceLocation> textures = new HashSet<>();
         for (CITEntry entry : entries) {
-            if (entry.getTexture() != null) textures.add(entry.getTexture());
-            textures.addAll(entry.getSubTextures().values());
+            if (entry.texture() != null) textures.add(entry.texture());
+            textures.addAll(entry.subTextures().values());
         }
         return textures;
     }

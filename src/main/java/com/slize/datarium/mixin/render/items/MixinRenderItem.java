@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.items;
 
 import com.slize.datarium.client.cit.CITEntry;
 import com.slize.datarium.client.cit.CITManager;
@@ -111,36 +111,36 @@ public class MixinRenderItem {
         if (enchEntries.isEmpty()) return;
 
         int cap = GlobalCITProperties.getCap();
-        enchEntries.sort(Comparator.comparingInt(CITEntry::getGlintLayer));
+        enchEntries.sort(Comparator.comparingInt(CITEntry::glintLayer));
         if (cap < enchEntries.size()) enchEntries = enchEntries.subList(0, cap);
 
         TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
 
         for (CITEntry entry : enchEntries) {
-            if (entry.getTexture() == null) continue;
+            if (entry.texture() == null) continue;
             datarium$renderCITGlint(entry, textureMap, x, y);
         }
     }
 
     @Unique
     private void datarium$renderCITGlint(CITEntry entry, TextureMap textureMap, int x, int y) {
-        String spritePath = entry.getTexture().getPath();
+        String spritePath = entry.texture().getPath();
         if (spritePath.endsWith(".png")) spritePath = spritePath.substring(0, spritePath.length() - 4);
         if (spritePath.startsWith("textures/")) spritePath = spritePath.substring("textures/".length());
-        String spriteName = entry.getTexture().getNamespace() + ":" + spritePath;
+        String spriteName = entry.texture().getNamespace() + ":" + spritePath;
         TextureAtlasSprite sprite = textureMap.getAtlasSprite(spriteName);
         if (sprite == null) return;
 
         GlStateManager.depthMask(false);
         GlStateManager.depthFunc(514);
         GlStateManager.disableLighting();
-        GlStateManager.blendFunc(datarium$resolveBlendSrc(entry.getGlintBlend()),
-                datarium$resolveBlendDst(entry.getGlintBlend()));
+        GlStateManager.blendFunc(datarium$resolveBlendSrc(entry.glintBlend()),
+                datarium$resolveBlendDst(entry.glintBlend()));
         GlStateManager.enableBlend();
 
         float alphaMult = GlobalCITProperties.getMethod().equals("average") ? GlobalCITProperties.getFade() : 1.0f;
-        if (!GlobalCITProperties.isUseGlint() || !entry.isGlintUseGlint()) {
-            GlStateManager.color(entry.getGlintR(), entry.getGlintG(), entry.getGlintB(), entry.getGlintA() * alphaMult);
+        if (!GlobalCITProperties.isUseGlint() || !entry.glintUseGlint()) {
+            GlStateManager.color(entry.glintR(), entry.glintG(), entry.glintB(), entry.glintA() * alphaMult);
         }
 
         Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);

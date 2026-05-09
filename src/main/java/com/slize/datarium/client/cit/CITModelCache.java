@@ -14,8 +14,8 @@ public class CITModelCache {
     public record Key(ResourceLocation model, ResourceLocation texture) {
         @Override
             public boolean equals(Object o) {
-                if (!(o instanceof Key k)) return false;
-                return Objects.equals(model, k.model) && Objects.equals(texture, k.texture);
+                if (!(o instanceof Key(ResourceLocation model1, ResourceLocation texture1))) return false;
+                return Objects.equals(model, model1) && Objects.equals(texture, texture1);
             }
     }
 

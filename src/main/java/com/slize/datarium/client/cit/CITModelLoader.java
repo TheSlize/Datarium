@@ -7,7 +7,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.PerspectiveMapWrapper;
@@ -28,16 +27,9 @@ public class CITModelLoader {
 
     @Nullable
     public static IBakedModel loadAndBake(ResourceLocation modelLoc, ResourceLocation propertiesLoc, IBakedModel baseModel, @Nullable ResourceLocation citTextureLoc) {
-        IResourceManager rm = Minecraft.getMinecraft().getResourceManager();
         TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
 
-        // Resolve model path: the .json may be relative to the .properties dir
-        ResourceLocation jsonLoc = modelLoc;
-        if (!jsonLoc.getPath().endsWith(".json")) {
-            jsonLoc = new ResourceLocation(jsonLoc.getNamespace(), jsonLoc.getPath() + ".json");
-        }
-
-        JsonObject json = resolveModelJson(modelLoc, propertiesLoc, new HashSet<>());
+        JsonObject json = resolveModelJson(modelLoc, new HashSet<>());
         if (json == null) return null;
 
 
@@ -264,7 +256,7 @@ public class CITModelLoader {
     }
 
     @Nullable
-    private static JsonObject resolveModelJson(ResourceLocation modelLoc, ResourceLocation propertiesLoc, Set<ResourceLocation> visited) {
+    private static JsonObject resolveModelJson(ResourceLocation modelLoc, Set<ResourceLocation> visited) {
         ResourceLocation jsonLoc = modelLoc.getPath().endsWith(".json")
                 ? modelLoc
                 : new ResourceLocation(modelLoc.getNamespace(), modelLoc.getPath() + ".json");
@@ -280,7 +272,7 @@ public class CITModelLoader {
             String parentPath = current.get("parent").getAsString();
             ResourceLocation parentLoc = resolveParentModelPath(jsonLoc, parentPath);
             if (parentLoc != null) {
-                JsonObject parent = resolveModelJson(parentLoc, propertiesLoc, visited);
+                JsonObject parent = resolveModelJson(parentLoc, visited);
                 if (parent != null) {
                     resolved = parent.deepCopy();
                 }
@@ -324,8 +316,7 @@ public class CITModelLoader {
     private static ResourceLocation resolveParentModelPath(ResourceLocation currentModelLoc, String path) {
         if (path == null || path.isEmpty() || path.startsWith("builtin/")) return null;
 
-        String domain = currentModelLoc.getNamespace();
-        String resolvedDomain = domain;
+        String resolvedDomain = currentModelLoc.getNamespace();
         String resolved;
 
         if (path.contains(":")) {

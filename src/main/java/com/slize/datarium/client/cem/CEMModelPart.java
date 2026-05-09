@@ -17,7 +17,6 @@ public class CEMModelPart {
     public List<CEMBox> boxes;
     public List<CEMModelPart> submodels;
 
-    // New field to track hierarchy
     @Nullable public CEMModelPart parent;
 
     public CEMModelPart() {

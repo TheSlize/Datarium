@@ -1,22 +1,6 @@
 package com.slize.datarium.client.cem.expr;
 
-public class CEMBinaryOp implements CEMExpression {
-    public enum Op {
-        ADD, SUB, MUL, DIV, MOD,
-        EQ, NEQ, LT, GT, LTE, GTE,
-        AND, OR
-    }
-
-    private final Op op;
-    private final CEMExpression left;
-    private final CEMExpression right;
-
-    public CEMBinaryOp(Op op, CEMExpression left, CEMExpression right) {
-        this.op = op;
-        this.left = left;
-        this.right = right;
-    }
-
+public record CEMBinaryOp(Op op, CEMExpression left, CEMExpression right) implements CEMExpression {
     @Override
     public double evaluate(CEMRenderContext ctx) {
         double l = left.evaluate(ctx);
@@ -37,5 +21,11 @@ public class CEMBinaryOp implements CEMExpression {
             case AND -> (l != 0 && r != 0) ? 1 : 0;
             case OR -> (l != 0 || r != 0) ? 1 : 0;
         };
+    }
+
+    public enum Op {
+        ADD, SUB, MUL, DIV, MOD,
+        EQ, NEQ, LT, GT, LTE, GTE,
+        AND, OR
     }
 }

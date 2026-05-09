@@ -1,12 +1,14 @@
 package com.slize.datarium.client.cem.expr;
 
+import com.slize.datarium.DatariumMain;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class CEMExpressionParser {
     private final String expression;
     private int pos;
-    private int length;
+    private final int length;
 
     public CEMExpressionParser(String expression) {
         this.expression = expression.trim();
@@ -20,10 +22,9 @@ public class CEMExpressionParser {
         }
         try {
             CEMExpressionParser parser = new CEMExpressionParser(expression);
-            CEMExpression result = parser.parseExpression();
-            return result;
+            return parser.parseExpression();
         } catch (Exception e) {
-            System.err.println("[CEM] Failed to parse expression: " + expression);
+            DatariumMain.LOGGER.warn("[CEM] Failed to parse expression: {}", expression);
             e.printStackTrace();
             return new CEMLiteral(0);
         }
@@ -252,7 +253,7 @@ public class CEMExpressionParser {
 
     private boolean match(String s) {
         skipWhitespace();
-        if (pos + s.length() <= length && expression.substring(pos, pos + s.length()).equals(s)) {
+        if (pos + s.length() <= length && expression.startsWith(s, pos)) {
             // Make sure we're not matching a prefix of a longer operator
             if (s.length() == 1 && (s.equals("<") || s.equals(">") || s.equals("="))) {
                 if (pos + 1 < length && expression.charAt(pos + 1) == '=') {

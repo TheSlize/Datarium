@@ -23,11 +23,11 @@ public record ConditionNode(String property, @Nullable String predicate, @Nullab
 
     @Override
     public Object resolve(ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity) {
-        boolean result = evaluateCondition(stack, world, entity);
+        boolean result = evaluateCondition(stack, entity);
         return result ? onTrue.resolve(stack, world, entity) : onFalse.resolve(stack, world, entity);
     }
 
-    private boolean evaluateCondition(ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity) {
+    private boolean evaluateCondition(ItemStack stack, @Nullable EntityLivingBase entity) {
         String normalizedProperty = normalizeId(property);
 
         return switch (normalizedProperty) {

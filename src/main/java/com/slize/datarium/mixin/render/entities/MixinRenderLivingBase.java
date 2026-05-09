@@ -1,7 +1,6 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.entities;
 
 import com.slize.datarium.client.cem.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -40,7 +39,7 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
         }
 
         if (datarium$cachedPartMap == null || datarium$cachedModelClass != mainModel.getClass()) {
-            datarium$cachedPartMap = CEMPartMapping.mapParts(mainModel, modelName);
+            datarium$cachedPartMap = CEMPartMapping.mapParts(mainModel);
             datarium$cachedModelClass = mainModel.getClass();
         }
 

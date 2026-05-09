@@ -23,12 +23,12 @@ public class CEMModelRenderer extends ModelRenderer {
     private final List<CEMModelRenderer> cemChildren;
     private CEMPartTransform transform;
 
-    // Absolute pivot point in Global Model Space (Minecraft Y-down)
+    // Absolute pivot point in Global Model Space
     private final float absPivotX;
     private final float absPivotY;
     private final float absPivotZ;
 
-    // Relative offset from parent pivot (This is what Vanilla ModelRenderer uses for rotationPoint)
+    // Relative offset from parent pivot
     private final float defaultOffsetX;
     private final float defaultOffsetY;
     private final float defaultOffsetZ;
@@ -45,12 +45,10 @@ public class CEMModelRenderer extends ModelRenderer {
         this.cemChildren = new ArrayList<>();
         this.transform = null;
 
-        // Process invertAxis for the translation values
         boolean invX = cemPart.invertAxis.contains("x");
         boolean invY = cemPart.invertAxis.contains("y");
         boolean invZ = cemPart.invertAxis.contains("z");
 
-        // Apply invertAxis to the translation values first
         float invXTrans = invX ? -cemPart.translate[0] : cemPart.translate[0];
         float invYTrans = invY ? -cemPart.translate[1] : cemPart.translate[1];
         float invZTrans = invZ ? -cemPart.translate[2] : cemPart.translate[2];
@@ -69,6 +67,7 @@ public class CEMModelRenderer extends ModelRenderer {
         }
 
         // Calculate relative offset for ModelRenderer translation
+        // though this is just a bandaid
         if(cemPart.id.equals("l_eye_white") || cemPart.id.equals("r_eye_white")) {
             this.defaultOffsetX = invXTrans;
             this.defaultOffsetY = invYTrans;
@@ -79,17 +78,14 @@ public class CEMModelRenderer extends ModelRenderer {
             this.defaultOffsetZ = this.absPivotZ;
         }
 
-        // Initial Rotations (Standard ModelRenderer behavior)
         this.defaultRotateX = (float) Math.toRadians(cemPart.rotate[0]);
         this.defaultRotateY = (float) Math.toRadians(cemPart.rotate[1]);
         this.defaultRotateZ = (float) Math.toRadians(cemPart.rotate[2]);
 
-        // Apply invertAxis to rotations as well
         if (invX) this.defaultRotateX = -this.defaultRotateX;
         if (invY) this.defaultRotateY = -this.defaultRotateY;
         if (invZ) this.defaultRotateZ = -this.defaultRotateZ;
 
-        // Set initial values for Vanilla ModelRenderer fields
         this.rotationPointX = defaultOffsetX;
         this.rotationPointY = defaultOffsetY;
         this.rotationPointZ = defaultOffsetZ;
@@ -132,14 +128,11 @@ public class CEMModelRenderer extends ModelRenderer {
 
         applyTransforms(scale);
 
-        // --- Render Geometry ---
-        // Boxes must be rendered relative to the CURRENT local origin (which is at absPivot)
         boolean invX = cemPart.invertAxis.contains("x");
         boolean invY = cemPart.invertAxis.contains("y");
         boolean invZ = cemPart.invertAxis.contains("z");
         renderBoxes(scale, invX, invY, invZ);
 
-        // --- Render Children ---
         for (CEMModelRenderer child : cemChildren) {
             child.renderWithVanilla(scale);
         }
@@ -155,10 +148,8 @@ public class CEMModelRenderer extends ModelRenderer {
 
         applyTransforms(scale);
 
-        // Render debug using absolute pivot info
         if(CEMDebugSystem.enabled) renderDebugInternals(scale);
 
-        // Recurse
         for (CEMModelRenderer child : cemChildren) {
             if(CEMDebugSystem.enabled) child.renderDebugOnly(scale);
         }
@@ -167,14 +158,10 @@ public class CEMModelRenderer extends ModelRenderer {
     }
 
     private void applyTransforms(float scale) {
-        // --- Translation ---
-        // Start with default relative offset (Calculated Pivot)
         float tx = defaultOffsetX;
         float ty = defaultOffsetY;
         float tz = defaultOffsetZ;
 
-        // Add Animation Transforms (Offsets)
-        // Optifine animations for translation are offsets added to the base pivot
         if (transform != null) {
             if (transform.hasTranslateX) tx = transform.translateX;
             if (transform.hasTranslateY) ty = transform.translateY;
@@ -183,8 +170,6 @@ public class CEMModelRenderer extends ModelRenderer {
 
         GlStateManager.translate(tx * scale, ty * scale, tz * scale);
 
-        // --- Rotation ---
-        // Rotations are typically replacements
         float rx = defaultRotateX;
         float ry = defaultRotateY;
         float rz = defaultRotateZ;
@@ -199,7 +184,6 @@ public class CEMModelRenderer extends ModelRenderer {
         if (ry != 0.0F) GlStateManager.rotate((float) Math.toDegrees(ry), 0.0F, 1.0F, 0.0F);
         if (rx != 0.0F) GlStateManager.rotate((float) Math.toDegrees(rx), 1.0F, 0.0F, 0.0F);
 
-        // --- Scaling ---
         float sx = 1.0f, sy = 1.0f, sz = 1.0f;
         if (cemPart.scale != null) {
             sx = cemPart.scale[0];

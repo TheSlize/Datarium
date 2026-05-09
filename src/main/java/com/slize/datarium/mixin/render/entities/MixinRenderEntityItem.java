@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.entities;
 
 import com.slize.datarium.util.DatariumContext;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;

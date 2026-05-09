@@ -1,6 +1,5 @@
 package com.slize.datarium.client.cem;
 
-import com.slize.datarium.DatariumMain;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
@@ -16,7 +15,6 @@ public class CEMDebugSystem {
     // Toggle state
     public static boolean enabled = false;
 
-    // Key states for debouncing
     private static boolean commaDown = false;
     private static boolean periodDown = false;
     private static boolean semicolonDown = false;
@@ -33,13 +31,12 @@ public class CEMDebugSystem {
                 selectedIndex = availableParts.indexOf(selectedPart);
             } else if (!availableParts.isEmpty()) {
                 selectedIndex = 0;
-                selectedPart = availableParts.get(0);
+                selectedPart = availableParts.getFirst();
             }
         }
     }
 
     public static void onGameTick() {
-        // Toggle Logic (Semicolon)
         boolean semicolon = Keyboard.isKeyDown(Keyboard.KEY_SEMICOLON);
         if (semicolon && !semicolonDown) {
             enabled = !enabled;
@@ -47,10 +44,8 @@ public class CEMDebugSystem {
         }
         semicolonDown = semicolon;
 
-        // If disabled, do not process selection keys
         if (!enabled) return;
 
-        // Selection Logic
         boolean comma = Keyboard.isKeyDown(Keyboard.KEY_COMMA);
         boolean period = Keyboard.isKeyDown(Keyboard.KEY_PERIOD);
 
@@ -73,13 +68,11 @@ public class CEMDebugSystem {
         if (selectedIndex >= availableParts.size()) selectedIndex = 0;
 
         selectedPart = availableParts.get(selectedIndex);
-        // Optional: Print to log, but chat might be spammy for cycling
-        // DatariumMain.LOGGER.info("[CEM Debug] Selected part: {}", selectedPart);
     }
 
     private static void printStatus() {
         String status = enabled ? "ENABLED" : "DISABLED";
-        DatariumMain.LOGGER.info("[CEM] Debug System: " + status);
+        //DatariumMain.LOGGER.info("[CEM] Debug System: " + status);
 
         if (Minecraft.getMinecraft().player != null) {
             TextFormatting color = enabled ? TextFormatting.GREEN : TextFormatting.RED;

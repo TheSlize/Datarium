@@ -51,7 +51,7 @@ public class GuiRespackOpts extends GuiScreen {
                     categories.add(entry.getKey());
                 } else {
                     if (!categories.contains("General")) {
-                        categories.add(0, "General");
+                        categories.addFirst("General");
                     }
                 }
             }
@@ -59,7 +59,7 @@ public class GuiRespackOpts extends GuiScreen {
 
         if (!categories.isEmpty()) {
             if (currentCategory.isEmpty()) {
-                currentCategory = categories.get(0);
+                currentCategory = categories.getFirst();
             }
         }
 
@@ -83,7 +83,7 @@ public class GuiRespackOpts extends GuiScreen {
         this.list = new OptionList(this.mc, this.width, this.height, 40, this.height - 35, 36);
         refreshOptionList();
 
-        // Done Button
+        // 'Done' button
         this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height - 28, I18n.format("gui.done")));
     }
 
@@ -128,17 +128,15 @@ public class GuiRespackOpts extends GuiScreen {
     }
 
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException {
+    protected void actionPerformed(GuiButton button) {
         if (button.id == 0) {
-            // Done button clicked
             if (RespackOptsManager.hasChanges()) {
-                // Trigger reload
                 this.mc.refreshResources();
             }
             this.mc.displayGuiScreen(parent);
         } else if (button.id >= 100) {
             int idx = button.id - 100;
-            if (idx >= 0 && idx < categories.size()) {
+            if (idx < categories.size()) {
                 this.currentCategory = categories.get(idx);
                 this.initGui();
             }

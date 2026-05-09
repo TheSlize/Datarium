@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class CEMModelLoader {
-    private static final Gson GSON = new GsonBuilder().setStrictness(Strictness.LENIENT).create();
 
     @Nullable
     public static CEMModel loadJEM(ResourceLocation location) {
@@ -40,7 +39,7 @@ public class CEMModelLoader {
                 JsonArray modelsArray = root.getAsJsonArray("models");
                 for (JsonElement elem : modelsArray) {
                     // Pass null as parent for root parts
-                    CEMModelPart part = parseModelPart(elem.getAsJsonObject(), location, null);
+                    CEMModelPart part = parseModelPart(elem.getAsJsonObject(), null);
                     model.parts.add(part);
                 }
             }
@@ -115,7 +114,7 @@ public class CEMModelLoader {
         }
     }
 
-    private static CEMModelPart parseModelPart(JsonObject obj, ResourceLocation baseLoc, @Nullable CEMModelPart parent) {
+    private static CEMModelPart parseModelPart(JsonObject obj, @Nullable CEMModelPart parent) {
         CEMModelPart part = new CEMModelPart();
         part.parent = parent;
 
@@ -155,7 +154,7 @@ public class CEMModelLoader {
         if (obj.has("submodels")) {
             JsonArray submodels = obj.getAsJsonArray("submodels");
             for (JsonElement elem : submodels) {
-                CEMModelPart subPart = parseModelPart(elem.getAsJsonObject(), baseLoc, part);
+                CEMModelPart subPart = parseModelPart(elem.getAsJsonObject(), part);
                 part.submodels.add(subPart);
             }
         }

@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.model;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -8,6 +8,7 @@ import com.slize.datarium.client.model.LogicCarrierOverride;
 import com.slize.datarium.client.model.ModernModelDefinitionDeserializer;
 import com.slize.datarium.client.model.ModernOverrideListWrapper;
 import com.slize.datarium.client.model.nodes.*;
+import com.slize.datarium.mixin.accessors.IModelBlockAccessor;
 import com.slize.datarium.util.ResourceHelper;
 import com.slize.datarium.util.RespackOptsManager;
 import com.slize.datarium.util.RpoHandler;

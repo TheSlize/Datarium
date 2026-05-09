@@ -1,6 +1,5 @@
 package com.slize.datarium.client.cem;
 
-import com.slize.datarium.DatariumMain;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.entity.Entity;
@@ -101,7 +100,7 @@ public class CEMManager {
                 CEMModel model = CEMModelLoader.loadJEM(loc);
                 if (model != null) {
                     modelCache.put(name, model);
-                    DatariumMain.LOGGER.info("[CEM] Loaded model: {} from {}", name, loc);
+                    //DatariumMain.LOGGER.info("[CEM] Loaded model: {} from {}", name, loc);
                     return model;
                 }
             } catch (Exception ignored) {
@@ -129,7 +128,7 @@ public class CEMManager {
 
         CEMAnimator animator = new CEMAnimator(model);
         animatorCache.put(name, animator);
-        DatariumMain.LOGGER.info("[CEM] Created animator for: {} with {} animation blocks", name, model.animations.size());
+        //DatariumMain.LOGGER.info("[CEM] Created animator for: {} with {} animation blocks", name, model.animations.size());
         return animator;
     }
 

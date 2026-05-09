@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.textures;
 
 import com.google.common.collect.Lists;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -23,7 +23,7 @@ public abstract class MixinTextureAtlasSprite {
     protected List<int[][]> framesTextureData;
 
     @Shadow
-    protected AnimationMetadataSection animationMetadata;
+    private AnimationMetadataSection animationMetadata;
 
     @Shadow
     protected int width;

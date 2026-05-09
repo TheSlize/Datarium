@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.textures;
 
 import com.slize.datarium.client.cit.CITAtlasSprite;
 import com.slize.datarium.client.cit.CITEntry;
@@ -41,7 +41,7 @@ public abstract class MixinTextureMap {
         }
 
         for (CITEntry entry : CITManager.getEntries()) {
-            if (entry.getModel() == null) continue;
+            if (entry.model() == null) continue;
             CITManager.collectModelTextures(entry).forEach(texLoc -> {
                 String spritePath = texLoc.getPath().endsWith(".png")
                         ? texLoc.getPath().substring(0, texLoc.getPath().length() - 4)

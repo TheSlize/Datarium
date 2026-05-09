@@ -66,10 +66,6 @@ public class CEMRenderContext {
         partValues.put(partId + "." + property, value);
     }
 
-    public double getPartValue(String partId, String property) {
-        return partValues.getOrDefault(partId + "." + property, 0.0);
-    }
-
     public double getVariable(String name) {
         // Boolean variables (varb.xxx)
         if (name.startsWith("varb.")) {
@@ -192,7 +188,4 @@ public class CEMRenderContext {
         return entity;
     }
 
-    public float getPartialTicks() {
-        return partialTicks;
-    }
 }

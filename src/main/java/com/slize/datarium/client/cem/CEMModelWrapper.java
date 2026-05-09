@@ -2,7 +2,6 @@ package com.slize.datarium.client.cem;
 
 import com.slize.datarium.DatariumMain;
 import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.Map;
 public class CEMModelWrapper {
     private final CEMModel cemModel;
     private final Map<String, CEMModelRenderer> partRenderers;
-    private final Map<String, ModelRenderer> vanillaPartBackup;
 
     private static final Map<String, String> FIELD_TO_CEM = new HashMap<>();
     private static final Map<String, String> CEM_TO_FIELD = new HashMap<>();
@@ -45,7 +43,6 @@ public class CEMModelWrapper {
     public CEMModelWrapper(CEMModel cemModel, ModelBase vanillaModel) {
         this.cemModel = cemModel;
         this.partRenderers = new HashMap<>();
-        this.vanillaPartBackup = new HashMap<>();
 
         buildRenderers(vanillaModel);
     }
@@ -118,7 +115,7 @@ public class CEMModelWrapper {
         String fieldName = CEM_TO_FIELD.get(partName);
         if (fieldName != null) {
             result = partRenderers.get(fieldName);
-            if (result != null) return result;
+            return result;
         }
 
         return null;
@@ -134,9 +131,7 @@ public class CEMModelWrapper {
     }
 
     public void renderDebug(float scale) {
-        // Only iterate over root parts defined in the CEM model
         for (CEMModelPart part : cemModel.parts) {
-            // Find the renderer corresponding to this root part
             String key = part.id != null ? part.id : part.part;
             CEMModelRenderer renderer = getPartRenderer(key);
             if (renderer != null) {
@@ -149,7 +144,4 @@ public class CEMModelWrapper {
         return partRenderers;
     }
 
-    public CEMModel getCemModel() {
-        return cemModel;
-    }
 }

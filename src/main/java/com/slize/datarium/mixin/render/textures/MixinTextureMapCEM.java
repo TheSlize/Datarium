@@ -1,6 +1,5 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.textures;
 
-import com.slize.datarium.DatariumMain;
 import com.slize.datarium.client.cem.CEMManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.resources.IResourceManager;

@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.font;
 
 import com.slize.datarium.client.font.BitmapGlyph;
 import com.slize.datarium.client.font.TrimResult;
@@ -52,12 +52,12 @@ public abstract class MixinFontRenderer {
     @Shadow public Random fontRandom;
     @Shadow private boolean unicodeFlag;
 
-    @Unique private final Map<Integer, BitmapGlyph> bitmapGlyphs = new HashMap<>();
-    @Unique private final Map<Integer, Float> spaceAdvances = new HashMap<>();
-    @Unique private boolean glyphsLoaded = false;
-    @Unique private final Set<String> loadedReferences = new HashSet<>();
+    @Unique private final Map<Integer, BitmapGlyph> datarium$bitmapGlyphs = new HashMap<>();
+    @Unique private final Map<Integer, Float> datarium$spaceAdvances = new HashMap<>();
+    @Unique private boolean datarium$glyphsLoaded = false;
+    @Unique private final Set<String> datarium$loadedReferences = new HashSet<>();
     @Unique private static final String FONT_JSON = "assets/datarium/font/default.json";
-    @Unique private static final String ALPHABET = "0123456789abcdefklmnor";
+    @Unique private static final String datarium$ALPHABET = "0123456789abcdefklmnor";
 
     @Shadow public abstract int getCharWidth(char character);
     @Shadow protected abstract void setColor(float r, float g, float b, float a);
@@ -65,17 +65,17 @@ public abstract class MixinFontRenderer {
 
     @Inject(method = "onResourceManagerReload", at = @At("RETURN"))
     public void datarium$onResourceManagerReload(IResourceManager resourceManager, CallbackInfo ci) {
-        this.glyphsLoaded = false;
-        this.bitmapGlyphs.clear();
-        this.spaceAdvances.clear();
-        this.loadedReferences.clear();
+        this.datarium$glyphsLoaded = false;
+        this.datarium$bitmapGlyphs.clear();
+        this.datarium$spaceAdvances.clear();
+        this.datarium$loadedReferences.clear();
     }
 
     @Unique
     private void datarium$loadCustomGlyphs() {
-        if (!this.glyphsLoaded) {
-            this.glyphsLoaded = true;
-            this.loadedReferences.clear();
+        if (!this.datarium$glyphsLoaded) {
+            this.datarium$glyphsLoaded = true;
+            this.datarium$loadedReferences.clear();
 
             // Load the mod's internal font as fallback
             datarium$loadFontFromClasspath();
@@ -140,8 +140,8 @@ public abstract class MixinFontRenderer {
         String id = prov.get("id").getAsString();
 
         // Prevent infinite loops
-        if (loadedReferences.contains(id)) return;
-        loadedReferences.add(id);
+        if (datarium$loadedReferences.contains(id)) return;
+        datarium$loadedReferences.add(id);
 
         // Parse the id as a ResourceLocation
         ResourceLocation refLoc;
@@ -165,7 +165,7 @@ public abstract class MixinFontRenderer {
             // Parse the key - it may contain surrogate pairs
             int[] codePoints = key.codePoints().toArray();
             if (codePoints.length > 0) {
-                spaceAdvances.put(codePoints[0], advance);
+                datarium$spaceAdvances.put(codePoints[0], advance);
             }
         }
     }
@@ -243,7 +243,7 @@ public abstract class MixinFontRenderer {
                                     continue;
                                 }
                                 BitmapGlyph glyph = new BitmapGlyph(atlasLoc, ascent, renderHeight, (float) advancePx, (float) drawWidthPx, u0, v0, u1, v1);
-                                this.bitmapGlyphs.put(codePoint, glyph);
+                                this.datarium$bitmapGlyphs.put(codePoint, glyph);
                             }
                         }
                     }
@@ -322,13 +322,13 @@ public abstract class MixinFontRenderer {
     @Unique
     private int datarium$getCodePointWidth(int codePoint) {
         // Check space advances first
-        Float spaceAdvance = spaceAdvances.get(codePoint);
+        Float spaceAdvance = datarium$spaceAdvances.get(codePoint);
         if (spaceAdvance != null) {
             return spaceAdvance.intValue();
         }
 
         // Check bitmap glyphs
-        BitmapGlyph glyph = bitmapGlyphs.get(codePoint);
+        BitmapGlyph glyph = datarium$bitmapGlyphs.get(codePoint);
         if (glyph != null) {
             return (int) glyph.advance();
         }
@@ -339,13 +339,13 @@ public abstract class MixinFontRenderer {
     @Unique
     private float datarium$renderCodePoint(int codePoint, boolean italic) {
         // Check space advances (just advance, no rendering)
-        Float spaceAdvance = spaceAdvances.get(codePoint);
+        Float spaceAdvance = datarium$spaceAdvances.get(codePoint);
         if (spaceAdvance != null) {
             return spaceAdvance;
         }
 
         // Check bitmap glyphs
-        BitmapGlyph glyph = bitmapGlyphs.get(codePoint);
+        BitmapGlyph glyph = datarium$bitmapGlyphs.get(codePoint);
         if (glyph != null) {
             Minecraft.getMinecraft().getTextureManager().bindTexture(glyph.texture());
             float x = this.posX;
@@ -455,6 +455,7 @@ public abstract class MixinFontRenderer {
         cir.setReturnValue(Math.round(totalWidth));
     }
 
+    @Deprecated
     @Overwrite
     public int sizeStringToWidth(String str, int wrapWidth) {
         this.datarium$loadCustomGlyphs();
@@ -583,7 +584,7 @@ public abstract class MixinFontRenderer {
             if (codePoint == 167 && i + charCount < text.length()) { // §
                 int nextCodePoint = text.codePointAt(i + charCount);
                 char fmtChar = Character.toLowerCase((char) nextCodePoint);
-                int i1 = ALPHABET.indexOf(fmtChar);
+                int i1 = datarium$ALPHABET.indexOf(fmtChar);
 
                 if (i1 < 16) {
                     this.randomStyle = false;
@@ -627,7 +628,7 @@ public abstract class MixinFontRenderer {
             // For randomStyle, only apply to vanilla characters
             int renderCodePoint = codePoint;
             // Check if we have a custom glyph for this code point
-            boolean hasCustomGlyph = bitmapGlyphs.containsKey(renderCodePoint) || spaceAdvances.containsKey(renderCodePoint);
+            boolean hasCustomGlyph = datarium$bitmapGlyphs.containsKey(renderCodePoint) || datarium$spaceAdvances.containsKey(renderCodePoint);
             if (this.randomStyle && !hasCustomGlyph && codePoint <= 0xFFFF) {
                 int j = "ÀÁÂÈÊËÍÓÔÕÚßãõğİıŒœŞşŴŵžȇ\u0000\u0000\u0000\u0000\u0000\u0000\u0000 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0000ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αβΓπΣσμτΦΘΩδ∞∅∈∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u0000".indexOf((char) codePoint);
                 if (j != -1) {

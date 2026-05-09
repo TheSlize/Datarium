@@ -1,6 +1,7 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.model.layered;
 
 import com.slize.datarium.client.cit.CITArmorHandler;
+import com.slize.datarium.mixin.accessors.ILayerElytraAccessor;
 import net.minecraft.client.model.ModelElytra;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
@@ -11,6 +12,7 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LayerElytra.class)
 public abstract class MixinLayerElytra {
 
+    @Final
     @Shadow
     protected RenderLivingBase<?> renderPlayer;
 
@@ -44,7 +47,7 @@ public abstract class MixinLayerElytra {
         GlStateManager.pushMatrix();
         GlStateManager.translate(0.0F, 0.0F, 0.125F);
 
-        ModelElytra model = ((ILayerElytraAccessor)(Object)this).datarium$getModelElytra();
+        ModelElytra model = ((ILayerElytraAccessor) this).datarium$getModelElytra();
         model.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale, entity);
         model.render(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
 

@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.model.layered;
 
 import com.slize.datarium.client.cit.CITArmorHandler;
 import net.minecraft.client.renderer.entity.layers.LayerArmorBase;
@@ -20,7 +20,7 @@ public abstract class MixinRenderArmorLayer {
     private void onGetArmorResource(Entity entity, ItemStack stack, EntityEquipmentSlot slot, String type,
                                     CallbackInfoReturnable<ResourceLocation> cir) {
         if (!(entity instanceof EntityLivingBase)) return;
-        ResourceLocation cit = CITArmorHandler.getArmorTexture((EntityLivingBase) entity, stack, slot, type);
+        ResourceLocation cit = CITArmorHandler.getArmorTexture(stack, slot, type);
         if (cit != null) cir.setReturnValue(cit);
     }
 }

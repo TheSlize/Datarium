@@ -1,4 +1,4 @@
-package com.slize.datarium.mixin;
+package com.slize.datarium.mixin.render.items;
 
 import com.google.common.collect.ImmutableList;
 import com.slize.datarium.client.cit.*;
@@ -32,12 +32,12 @@ public abstract class MixinItemOverrideList {
     public abstract ImmutableList<ItemOverride> getOverrides();
 
     @Unique
-    private ModernModelNode modernLogic;
+    private ModernModelNode datarium$modernLogic;
 
     @Inject(method = "handleItemState", at = @At("HEAD"), cancellable = true)
     public void onHandleItemState(IBakedModel originalModel, ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity, CallbackInfoReturnable<IBakedModel> cir) {
         List<CITEntry> itemMatches = CITManager.getMatchesOfType(stack, CITEntry.CITType.ITEM);
-        CITEntry citMatch = itemMatches.isEmpty() ? null : itemMatches.get(0);
+        CITEntry citMatch = itemMatches.isEmpty() ? null : itemMatches.getFirst();
         if (citMatch != null) {
             IBakedModel citModel = datarium$getCITModel(citMatch, originalModel, entity);
             if (citModel != null) {
@@ -46,20 +46,20 @@ public abstract class MixinItemOverrideList {
             }
         }
 
-        if (this.modernLogic == null) {
+        if (this.datarium$modernLogic == null) {
             List<ItemOverride> overrides = this.getOverrides();
             if (overrides != null && !overrides.isEmpty()) {
                 for (ItemOverride override : overrides) {
                     if (override instanceof LogicCarrierOverride carrier) {
-                        this.modernLogic = carrier.logic;
+                        this.datarium$modernLogic = carrier.logic;
                         break;
                     }
                 }
             }
         }
 
-        if (this.modernLogic != null) {
-            Object result = this.modernLogic.resolve(stack, world, entity);
+        if (this.datarium$modernLogic != null) {
+            Object result = this.datarium$modernLogic.resolve(stack, world, entity);
 
             if (result != null) {
                 ModelManager modelManager = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getModelManager();
@@ -93,8 +93,8 @@ public abstract class MixinItemOverrideList {
                 && !entity.getActiveItemStack().isEmpty()
                 && entity.getActiveItemStack().getItem() instanceof net.minecraft.item.ItemShield;
 
-        Map<String, ResourceLocation> subModels = entry.getSubModels();
-        Map<String, ResourceLocation> subTextures = entry.getSubTextures();
+        Map<String, ResourceLocation> subModels = entry.subModels();
+        Map<String, ResourceLocation> subTextures = entry.subTextures();
 
         if (isBlocking && subModels.containsKey("shield_blocking")) {
             ResourceLocation subLoc = subModels.get("shield_blocking");
@@ -107,8 +107,8 @@ public abstract class MixinItemOverrideList {
                 CITModelCache.put(subLoc, subLoc, registered);
                 return registered;
             }
-            ResourceLocation blockingTex = subTextures.getOrDefault("shield_blocking", entry.getTexture());
-            IBakedModel dynamic = CITModelLoader.loadAndBake(subLoc, entry.getPropertiesLocation(), baseModel, blockingTex);
+            ResourceLocation blockingTex = subTextures.getOrDefault("shield_blocking", entry.texture());
+            IBakedModel dynamic = CITModelLoader.loadAndBake(subLoc, entry.propertiesLocation(), baseModel, blockingTex);
             if (dynamic != null) {
                 CITModelCache.put(subLoc, subLoc, dynamic);
                 return dynamic;
@@ -117,12 +117,12 @@ public abstract class MixinItemOverrideList {
 
         if (isBlocking && subTextures.containsKey("shield_blocking") && !subModels.containsKey("shield_blocking")) {
             ResourceLocation blockingTexLoc = subTextures.get("shield_blocking");
-            ResourceLocation modelLoc = entry.getModel();
+            ResourceLocation modelLoc = entry.model();
             if (modelLoc != null) {
                 if (CITModelCache.contains(modelLoc, blockingTexLoc)) {
                     return CITModelCache.get(modelLoc, blockingTexLoc);
                 }
-                IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.getPropertiesLocation(), baseModel, blockingTexLoc);
+                IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.propertiesLocation(), baseModel, blockingTexLoc);
                 if (dynamic != null) {
                     CITModelCache.put(modelLoc, blockingTexLoc, dynamic);
                     return dynamic;
@@ -155,25 +155,25 @@ public abstract class MixinItemOverrideList {
             }
         }
 
-        ResourceLocation modelLoc = entry.getModel();
+        ResourceLocation modelLoc = entry.model();
         if (modelLoc != null) {
             ModelResourceLocation mrl = new ModelResourceLocation(modelLoc, "inventory");
             IBakedModel registered = modelManager.getModel(mrl);
             if (registered != null && registered != modelManager.getMissingModel()) {
                 return registered;
             }
-            ResourceLocation citTex = entry.getTexture();
+            ResourceLocation citTex = entry.texture();
             if (CITModelCache.contains(modelLoc, citTex)) {
                 return CITModelCache.get(modelLoc, citTex);
             }
-            IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.getPropertiesLocation(), baseModel, citTex);
+            IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.propertiesLocation(), baseModel, citTex);
             if (dynamic != null) {
                 CITModelCache.put(modelLoc, citTex, dynamic);
                 return dynamic;
             }
         }
 
-        ResourceLocation textureLoc = entry.getTexture();
+        ResourceLocation textureLoc = entry.texture();
         if (textureLoc != null) {
             if (CITModelCache.contains(null, textureLoc)) {
                 return CITModelCache.get(null, textureLoc);

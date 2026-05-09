@@ -12,7 +12,6 @@ public class CEMPartTransform {
     public float scaleZ = 1;
     public boolean visible = true;
 
-    // Flags to know which values were actually set by animations
     public boolean hasRotateX = false;
     public boolean hasRotateY = false;
     public boolean hasRotateZ = false;

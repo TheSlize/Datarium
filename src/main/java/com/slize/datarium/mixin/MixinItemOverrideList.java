@@ -36,7 +36,8 @@ public abstract class MixinItemOverrideList {
 
     @Inject(method = "handleItemState", at = @At("HEAD"), cancellable = true)
     public void onHandleItemState(IBakedModel originalModel, ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity, CallbackInfoReturnable<IBakedModel> cir) {
-        CITEntry citMatch = CITManager.getMatch(stack);
+        List<CITEntry> itemMatches = CITManager.getMatchesOfType(stack, CITEntry.CITType.ITEM);
+        CITEntry citMatch = itemMatches.isEmpty() ? null : itemMatches.get(0);
         if (citMatch != null) {
             IBakedModel citModel = datarium$getCITModel(citMatch, originalModel, entity);
             if (citModel != null) {

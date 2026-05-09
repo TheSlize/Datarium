@@ -16,7 +16,7 @@
 > [!IMPORTANT]
 > **На данный момент мод находится в состоянии альфы.**
 >
-> Это значит, что последний билд можно скачать [здесь,](https://github.com/TheSlize/Datarium.git/releases/latest) но ожидайте баги и недоработанные/несделанные фичи.
+> Это значит, что последний билд можно скачать [здесь,](https://github.com/TheSlize/Datarium/releases/latest) но ожидайте баги и недоработанные/несделанные фичи.
 
 <p align="center"><img src="./github/images/description.png" alt="Description" width="800"></p>
 

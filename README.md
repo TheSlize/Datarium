@@ -16,7 +16,7 @@ An unified mod planned to support modern resourcepacks/datapacks back on 1.12.2.
 > [!IMPORTANT]
 > **This mod is currently in alpha state.**
 >
-> That means you can download the latest build [here](https://github.com/TheSlize/Datarium.git/releases/latest) but expect features being underdeveloped or bugged.
+> That means you can download the latest build [here](https://github.com/TheSlize/Datarium/releases/latest) but expect features being underdeveloped or bugged.
 
 <p align="center"><img src="./github/images/description.png" alt="Description" width="800"></p>
 

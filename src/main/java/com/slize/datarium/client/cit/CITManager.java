@@ -97,9 +97,7 @@ public class CITManager {
 
     private static void scanZipPack(FileResourcePack pack) {
         try {
-            Field fileField = AbstractResourcePack.class.getDeclaredField("resourcePackFile");
-            fileField.setAccessible(true);
-            File file = (File) fileField.get(pack);
+            File file = pack.getResourcePackFile();
 
             try (ZipFile zip = new ZipFile(file)) {
                 Enumeration<? extends ZipEntry> zipEntries = zip.entries();
@@ -135,9 +133,7 @@ public class CITManager {
 
     private static void scanFolderPack(FolderResourcePack pack) {
         try {
-            Field fileField = AbstractResourcePack.class.getDeclaredField("resourcePackFile");
-            fileField.setAccessible(true);
-            File folder = (File) fileField.get(pack);
+            File folder = pack.getResourcePackFile();
 
             File assetsFolder = new File(folder, "assets");
             if (assetsFolder.exists() && assetsFolder.isDirectory()) {

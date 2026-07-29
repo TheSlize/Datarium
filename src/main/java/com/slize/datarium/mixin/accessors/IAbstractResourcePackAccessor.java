@@ -2,8 +2,10 @@ package com.slize.datarium.mixin.accessors;
 
 import net.minecraft.client.resources.AbstractResourcePack;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -20,4 +22,10 @@ public interface IAbstractResourcePackAccessor {
      */
     @Invoker("hasResourceName")
     boolean invokeHasResourceName(String name);
+
+    /**
+     * Accesses the protected resourcePackFile field to avoid OptiFine's getResourcePackFile() removal issue.
+     */
+    @Accessor("resourcePackFile")
+    File datarium$getResourcePackFileField();
 }

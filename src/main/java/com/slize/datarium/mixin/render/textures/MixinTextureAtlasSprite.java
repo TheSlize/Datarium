@@ -7,9 +7,11 @@ import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.data.AnimationFrame;
 import net.minecraft.client.resources.data.AnimationMetadataSection;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -39,10 +41,16 @@ public abstract class MixinTextureAtlasSprite {
      * Also fixes the IOOBE crash by ensuring at least one frame is loaded if metadata is invalid.
      * @author Th3_Sl1ze
      */
-    @Overwrite
-    public void loadSpriteFrames(IResource resource, int mipmaplevels) throws IOException {
+    @Inject(method = "loadSpriteFrames", at = @At("HEAD"), cancellable = true)
+    public void onLoadSpriteFrames(IResource resource, int mipmaplevels, CallbackInfo ci) throws IOException {
         BufferedImage bufferedimage = TextureUtil.readBufferedImage(resource.getInputStream());
         AnimationMetadataSection animationmetadatasection = resource.getMetadata("animation");
+
+        this.width = bufferedimage.getWidth();
+        this.height = bufferedimage.getHeight();
+        if (animationmetadatasection != null) {
+            this.height = this.width;
+        }
 
         int[][] aint = new int[mipmaplevels][];
         aint[0] = new int[bufferedimage.getWidth() * bufferedimage.getHeight()];
@@ -99,6 +107,7 @@ public abstract class MixinTextureAtlasSprite {
                 );
             }
         }
+        ci.cancel();
     }
 
     /**

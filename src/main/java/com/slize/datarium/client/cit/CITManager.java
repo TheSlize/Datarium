@@ -1,5 +1,6 @@
 package com.slize.datarium.client.cit;
 
+import com.slize.datarium.mixin.accessors.IAbstractResourcePackAccessor;
 import com.slize.datarium.util.UndoFlattenUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.*;
@@ -97,7 +98,7 @@ public class CITManager {
 
     private static void scanZipPack(FileResourcePack pack) {
         try {
-            File file = pack.getResourcePackFile();
+            File file = ((IAbstractResourcePackAccessor) pack).datarium$getResourcePackFileField();
 
             try (ZipFile zip = new ZipFile(file)) {
                 Enumeration<? extends ZipEntry> zipEntries = zip.entries();
@@ -133,7 +134,7 @@ public class CITManager {
 
     private static void scanFolderPack(FolderResourcePack pack) {
         try {
-            File folder = pack.getResourcePackFile();
+            File folder = ((IAbstractResourcePackAccessor) pack).datarium$getResourcePackFileField();
 
             File assetsFolder = new File(folder, "assets");
             if (assetsFolder.exists() && assetsFolder.isDirectory()) {

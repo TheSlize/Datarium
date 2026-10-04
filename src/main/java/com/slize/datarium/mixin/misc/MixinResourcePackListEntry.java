@@ -1,14 +1,18 @@
 package com.slize.datarium.mixin.misc;
 
 import com.google.gson.JsonObject;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.slize.datarium.client.gui.GuiRespackOpts;
+import com.slize.datarium.util.PackConverter;
 import com.slize.datarium.util.RespackOptsManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.client.resources.ResourcePackListEntry;
 import net.minecraft.client.resources.ResourcePackListEntryFound;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -40,6 +44,13 @@ public abstract class MixinResourcePackListEntry {
             return ((ResourcePackListEntryFound)(Object)this).getResourcePackEntry().getResourcePack();
         }
         return null;
+    }
+
+    // Th3_Sl1ze: yes I don't like the rp warnings THAT much
+    @ModifyExpressionValue(method = {"drawEntry", "mousePressed"},
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/ResourcePackListEntry;getResourcePackFormat()I"))
+    private int datarium$acceptModernFormat(int format) {
+        return Math.min(format, PackConverter.LEGACY);
     }
 
     @Inject(method = "drawEntry", at = @At("RETURN"))
@@ -77,7 +88,7 @@ public abstract class MixinResourcePackListEntry {
     public void onMousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY, CallbackInfoReturnable<Boolean> cir) {
         if (this.datarium$hasRespackOpts && this.datarium$cachedConfig != null) {
             if (relativeX > 160 && relativeY >= 0 && relativeY <= 32) {
-                this.mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.getMasterRecord(net.minecraft.init.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 this.mc.displayGuiScreen(new GuiRespackOpts(this.mc.currentScreen, datarium$getPack(), this.datarium$cachedConfig));
                 cir.setReturnValue(true);
             }

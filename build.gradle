@@ -153,6 +153,15 @@ processResources {
     }
 
     rename '(.+_at.cfg)', 'META-INF/$1'
+
+    from(rootDir) {
+        include 'LICENSE', 'NOTICE'
+        into "META-INF/licenses/${propertyString('mod_id')}"
+    }
+
+    from("${rootDir}/licenses") {
+        into "META-INF/licenses/${propertyString('mod_id')}"
+    }
 }
 
 sourceSets {

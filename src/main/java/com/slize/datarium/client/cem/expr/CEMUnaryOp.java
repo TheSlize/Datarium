@@ -1,6 +1,12 @@
 package com.slize.datarium.client.cem.expr;
 
 public record CEMUnaryOp(Op op, CEMExpression operand) implements CEMExpression {
+    static CEMExpression of(Op op, CEMExpression operand) {
+        CEMUnaryOp node = new CEMUnaryOp(op, operand);
+        return operand instanceof CEMLiteral ? new CEMLiteral(node.evaluate(null)) : node;
+    }
+
+
     @Override
     public double evaluate(CEMRenderContext ctx) {
         double val = operand.evaluate(ctx);

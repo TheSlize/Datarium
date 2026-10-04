@@ -11,6 +11,10 @@ repositories {
         name 'Modrinth'
         url 'https://api.modrinth.com/maven'
     }
+    maven {
+        name 'Warfactory Releases'
+        url 'https://repo.warfactory.co/releases'
+    }
     mavenLocal() // Must be last for caching to work
 }
 
@@ -19,6 +23,10 @@ dependencies {
     if (propertyBool('enable_lwjglx')) {
         compileOnly "com.cleanroommc:lwjglx:1.0.0"
     }
+    compileOnly("com.hbm:ntm-ce:2.6.1.0:dev") {
+        transitive = false
+    }
+    modImplementation 'curse.maven:vintagefix-871198:7958801'
     modImplementation 'curse.maven:hei-557549:6187146' // Use for mod Mixin example
     modImplementation 'curse.maven:refined-storage-243076:2940914' // Use for mod Mixin example
 

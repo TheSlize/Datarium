@@ -7,6 +7,6 @@ import java.util.List;
 public class LateMixinPlugin implements ILateMixinLoader {
     @Override
     public List<String> getMixinConfigs() {
-        return Collections.singletonList("datarium.default.mixin.json");
+        return Collections.singletonList("datarium.mod.mixin.json");
     }
 }

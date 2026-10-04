@@ -4,7 +4,9 @@
   "plugin": "com.slize.datarium.ModMixinConfigPlugin",
   "compatibilityLevel": "JAVA_8",
   "target": "@env(MOD)",
-  "client": [],
+  "client": [
+    "hbm.MixinModelRendererObj"
+  ],
   "mixins": [],
   "server": [],
   "setSourceFile": true,

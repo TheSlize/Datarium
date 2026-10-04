@@ -1,47 +1,41 @@
 package com.slize.datarium.client.cit;
 
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Map;
 
 public class CITArmorHandler {
 
     @Nullable
-    public static ResourceLocation getArmorTexture(ItemStack stack, EntityEquipmentSlot slot, String type) {
+    public static ResourceLocation getArmorTexture(ItemStack stack, EntityEquipmentSlot slot, @Nullable String type) {
         if (stack.isEmpty()) return null;
-
-        List<CITEntry> matches = CITManager.getMatchesOfType(stack, CITEntry.CITType.ARMOR);
-        if (matches.isEmpty()) return null;
-
-        CITEntry entry = matches.getFirst();
-
-        boolean isLayer2 = (slot == EntityEquipmentSlot.LEGS);
-        String layerSuffix = isLayer2 ? "_layer_2" : "_layer_1";
-        String typeStr = (type != null && !type.isEmpty()) ? "_" + type : "";
+        CITEntry entry = CITManager.getMatch(stack, CITEntry.CITType.ARMOR);
+        if (entry == null) return null;
 
         Map<String, ResourceLocation> subTextures = entry.subTextures();
         if (!subTextures.isEmpty()) {
-            String fullSuffix = layerSuffix + typeStr;
-            for (Map.Entry<String, ResourceLocation> e : subTextures.entrySet()) {
-                if (e.getKey().endsWith(fullSuffix)) {
-                    return e.getValue();
-                }
-            }
-            if (!typeStr.isEmpty()) {
-                for (Map.Entry<String, ResourceLocation> e : subTextures.entrySet()) {
-                    if (e.getKey().endsWith(layerSuffix)) {
-                        return e.getValue();
-                    }
-                }
-            }
-            String numKey = isLayer2 ? "2" : "1";
-            if (subTextures.containsKey(numKey)) return subTextures.get(numKey);
+            int layer = slot == EntityEquipmentSlot.LEGS ? 2 : 1;
+            boolean overlay = type != null && !type.isEmpty();
+            String suffix = "_layer_" + layer + (overlay ? "_" + type : "");
 
-            return subTextures.values().iterator().next();
+            if (stack.getItem() instanceof ItemArmor armor) {
+                String material = armor.getArmorMaterial().getName();
+                int colon = material.indexOf(':');
+                if (colon >= 0) material = material.substring(colon + 1);
+                ResourceLocation exact = subTextures.get(material + suffix);
+                if (exact != null) return exact;
+            }
+            for (Map.Entry<String, ResourceLocation> e : subTextures.entrySet()) {
+                if (e.getKey().endsWith(suffix)) return e.getValue();
+            }
+            if (!overlay) {
+                ResourceLocation numbered = subTextures.get(Integer.toString(layer));
+                if (numbered != null) return numbered;
+            }
         }
 
         return entry.texture();
@@ -50,11 +44,10 @@ public class CITArmorHandler {
     @Nullable
     public static ResourceLocation getElytraTexture(ItemStack stack) {
         if (stack.isEmpty()) return null;
-        List<CITEntry> matches = CITManager.getMatchesOfType(stack, CITEntry.CITType.ELYTRA);
-        if (matches.isEmpty()) return null;
-        CITEntry entry = matches.getFirst();
+        CITEntry entry = CITManager.getMatch(stack, CITEntry.CITType.ELYTRA);
+        if (entry == null) return null;
+        if (entry.texture() != null) return entry.texture();
         Map<String, ResourceLocation> sub = entry.subTextures();
-        if (!sub.isEmpty()) return sub.values().iterator().next();
-        return entry.texture();
+        return sub.isEmpty() ? null : sub.values().iterator().next();
     }
 }

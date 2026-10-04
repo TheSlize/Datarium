@@ -13,6 +13,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraftforge.client.model.ModelLoader;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -23,7 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Mixin(ItemOverrideList.class)
 public abstract class MixinItemOverrideList {
@@ -31,21 +31,15 @@ public abstract class MixinItemOverrideList {
     @Shadow
     public abstract ImmutableList<ItemOverride> getOverrides();
 
+    @Shadow
+    @Nullable
+    public abstract ResourceLocation applyOverride(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn);
+
     @Unique
     private ModernModelNode datarium$modernLogic;
 
     @Inject(method = "handleItemState", at = @At("HEAD"), cancellable = true)
     public void onHandleItemState(IBakedModel originalModel, ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity, CallbackInfoReturnable<IBakedModel> cir) {
-        List<CITEntry> itemMatches = CITManager.getMatchesOfType(stack, CITEntry.CITType.ITEM);
-        CITEntry citMatch = itemMatches.isEmpty() ? null : itemMatches.getFirst();
-        if (citMatch != null) {
-            IBakedModel citModel = datarium$getCITModel(citMatch, originalModel, entity);
-            if (citModel != null) {
-                cir.setReturnValue(citModel);
-                return;
-            }
-        }
-
         if (this.datarium$modernLogic == null) {
             List<ItemOverride> overrides = this.getOverrides();
             if (overrides != null && !overrides.isEmpty()) {
@@ -55,6 +49,15 @@ public abstract class MixinItemOverrideList {
                         break;
                     }
                 }
+            }
+        }
+
+        CITEntry citMatch = CITManager.getMatch(stack, CITEntry.CITType.ITEM);
+        if (citMatch != null) {
+            IBakedModel citModel = datarium$getCITModel(citMatch, originalModel, stack, world, entity);
+            if (citModel != null) {
+                cir.setReturnValue(citModel);
+                return;
             }
         }
 
@@ -86,113 +89,54 @@ public abstract class MixinItemOverrideList {
 
     @Unique
     @Nullable
-    private IBakedModel datarium$getCITModel(CITEntry entry, IBakedModel baseModel, @Nullable EntityLivingBase entity) {
+    private IBakedModel datarium$getCITModel(CITEntry entry, IBakedModel originalModel, ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity) {
         ModelManager modelManager = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getModelManager();
+        IBakedModel missing = modelManager.getMissingModel();
 
-        boolean isBlocking = entity != null
-                && !entity.getActiveItemStack().isEmpty()
-                && entity.getActiveItemStack().getItem() instanceof net.minecraft.item.ItemShield;
-
-        Map<String, ResourceLocation> subModels = entry.subModels();
-        Map<String, ResourceLocation> subTextures = entry.subTextures();
-
-        if (isBlocking && subModels.containsKey("shield_blocking")) {
-            ResourceLocation subLoc = subModels.get("shield_blocking");
-            if (CITModelCache.contains(subLoc, subLoc)) {
-                return CITModelCache.get(subLoc, subLoc);
-            }
-            ModelResourceLocation mrl = new ModelResourceLocation(subLoc, "inventory");
-            IBakedModel registered = modelManager.getModel(mrl);
-            if (registered != null && registered != modelManager.getMissingModel()) {
-                CITModelCache.put(subLoc, subLoc, registered);
-                return registered;
-            }
-            ResourceLocation blockingTex = subTextures.getOrDefault("shield_blocking", entry.texture());
-            IBakedModel dynamic = CITModelLoader.loadAndBake(subLoc, entry.propertiesLocation(), baseModel, blockingTex);
-            if (dynamic != null) {
-                CITModelCache.put(subLoc, subLoc, dynamic);
-                return dynamic;
+        String subKey = null;
+        IBakedModel base = originalModel;
+        if (this.datarium$modernLogic == null && stack.getItem().hasCustomProperties()) {
+            ResourceLocation overrideLoc = this.applyOverride(stack, world, entity);
+            if (overrideLoc != null) {
+                String path = overrideLoc.getPath();
+                subKey = path.substring(path.lastIndexOf('/') + 1);
+                IBakedModel overrideModel = modelManager.getModel(ModelLoader.getInventoryVariant(overrideLoc.toString()));
+                if (overrideModel != null && overrideModel != missing) base = overrideModel;
             }
         }
 
-        if (isBlocking && subTextures.containsKey("shield_blocking") && !subModels.containsKey("shield_blocking")) {
-            ResourceLocation blockingTexLoc = subTextures.get("shield_blocking");
-            ResourceLocation modelLoc = entry.model();
-            if (modelLoc != null) {
-                if (CITModelCache.contains(modelLoc, blockingTexLoc)) {
-                    return CITModelCache.get(modelLoc, blockingTexLoc);
-                }
-                IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.propertiesLocation(), baseModel, blockingTexLoc);
-                if (dynamic != null) {
-                    CITModelCache.put(modelLoc, blockingTexLoc, dynamic);
-                    return dynamic;
-                }
-            } else {
-                if (CITModelCache.contains(null, blockingTexLoc)) {
-                    return CITModelCache.get(null, blockingTexLoc);
-                }
-                TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
-                String spritePath = blockingTexLoc.getPath();
-                if (spritePath.endsWith(".png")) spritePath = spritePath.substring(0, spritePath.length() - 4);
-                if (spritePath.startsWith("textures/")) spritePath = spritePath.substring("textures/".length());
-                String spriteName = blockingTexLoc.getNamespace() + ":" + spritePath;
-                TextureAtlasSprite sprite = textureMap.getTextureExtry(spriteName);
-                if (sprite == null) sprite = textureMap.getAtlasSprite(spriteName);
-                if (sprite != null) {
-                    IBakedModel citModel = new CITBakedModel(baseModel, sprite);
-                    CITModelCache.put(null, blockingTexLoc, citModel);
-                    return citModel;
-                }
-            }
-        }
-
-        if (!subModels.isEmpty()) {
-            ResourceLocation subLoc = subModels.getOrDefault("inventory", subModels.values().iterator().next());
-            ModelResourceLocation mrl = new ModelResourceLocation(subLoc, "inventory");
-            IBakedModel subModel = modelManager.getModel(mrl);
-            if (subModel != null && subModel != modelManager.getMissingModel()) {
-                return subModel;
-            }
-        }
-
-        ResourceLocation modelLoc = entry.model();
+        ResourceLocation modelLoc = subKey != null ? entry.subModels().get(subKey) : null;
+        if (modelLoc == null) modelLoc = entry.model();
         if (modelLoc != null) {
-            ModelResourceLocation mrl = new ModelResourceLocation(modelLoc, "inventory");
-            IBakedModel registered = modelManager.getModel(mrl);
-            if (registered != null && registered != modelManager.getMissingModel()) {
-                return registered;
-            }
-            ResourceLocation citTex = entry.texture();
-            if (CITModelCache.contains(modelLoc, citTex)) {
-                return CITModelCache.get(modelLoc, citTex);
-            }
-            IBakedModel dynamic = CITModelLoader.loadAndBake(modelLoc, entry.propertiesLocation(), baseModel, citTex);
-            if (dynamic != null) {
-                CITModelCache.put(modelLoc, citTex, dynamic);
-                return dynamic;
-            }
+            ResourceLocation modelFile = modelLoc;
+            ResourceLocation texture = entry.texture();
+            IBakedModel finalBase = base;
+            IBakedModel model = CITModelCache.get(modelFile, texture == null ? List.of() : List.of(texture), base, () -> {
+                if (texture == null) {
+                    ModelResourceLocation mrl = CITManager.registeredItemModel(modelFile);
+                    if (mrl != null) {
+                        IBakedModel registered = modelManager.getModel(mrl);
+                        if (registered != null && registered != missing) return registered;
+                    }
+                }
+                return CITModelLoader.loadAndBake(modelFile, finalBase, texture);
+            });
+            if (model != null) return model;
         }
 
-        ResourceLocation textureLoc = entry.texture();
-        if (textureLoc != null) {
-            if (CITModelCache.contains(null, textureLoc)) {
-                return CITModelCache.get(null, textureLoc);
-            }
+        List<ResourceLocation> layers = CITManager.getTextureLayers(entry, stack, subKey);
+        if (layers.isEmpty()) return null;
+        IBakedModel finalBase = base;
+        return CITModelCache.get(null, layers, base, () -> {
             TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
-            String spritePath = textureLoc.getPath();
-            if (spritePath.endsWith(".png")) spritePath = spritePath.substring(0, spritePath.length() - 4);
-            if (spritePath.startsWith("textures/")) spritePath = spritePath.substring("textures/".length());
-            String spriteName = textureLoc.getNamespace() + ":" + spritePath;
-            TextureAtlasSprite sprite = textureMap.getTextureExtry(spriteName);
-            if (sprite == null) sprite = textureMap.getAtlasSprite(spriteName);
-            if (sprite != null) {
-                IBakedModel citModel = new CITBakedModel(baseModel, sprite);
-                CITModelCache.put(null, textureLoc, citModel);
-                return citModel;
+            List<TextureAtlasSprite> sprites = new ArrayList<>(layers.size());
+            for (ResourceLocation layer : layers) {
+                TextureAtlasSprite sprite = textureMap.getTextureExtry(CITManager.spriteName(layer));
+                if (sprite == null) return null;
+                sprites.add(sprite);
             }
-        }
-
-        return null;
+            return new CITBakedModel(finalBase, sprites);
+        });
     }
 
     @Unique

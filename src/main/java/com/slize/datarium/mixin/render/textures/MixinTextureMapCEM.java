@@ -1,6 +1,7 @@
 package com.slize.datarium.mixin.render.textures;
 
 import com.slize.datarium.client.cem.CEMManager;
+import com.slize.datarium.client.cet.CETManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.resources.IResourceManager;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,5 +15,6 @@ public abstract class MixinTextureMapCEM {
     @Inject(method = "loadTextureAtlas", at = @At("HEAD"))
     private void datarium$onReloadCEM(IResourceManager resourceManager, CallbackInfo ci) {
         CEMManager.invalidate();
+        CETManager.reset();
     }
 }

@@ -9,7 +9,7 @@ import com.slize.datarium.client.model.ModernModelDefinitionDeserializer;
 import com.slize.datarium.client.model.ModernOverrideListWrapper;
 import com.slize.datarium.client.model.nodes.*;
 import com.slize.datarium.mixin.accessors.IModelBlockAccessor;
-import com.slize.datarium.util.ResourceHelper;
+import com.slize.datarium.util.PackConverter;
 import com.slize.datarium.util.RespackOptsManager;
 import com.slize.datarium.util.RpoHandler;
 import net.minecraft.client.renderer.BlockModelShapes;
@@ -66,7 +66,7 @@ public abstract class MixinModelBakery {
         ModelBlock definition = cir.getReturnValue();
 
         if (definition != null) {
-            InputStream stream = ResourceHelper.getModernItemDefinition(location);
+            InputStream stream = PackConverter.itemDefinition(location);
 
             if (stream != null) {
                 try {

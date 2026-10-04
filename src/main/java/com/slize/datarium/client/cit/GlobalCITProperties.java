@@ -7,6 +7,7 @@ import net.minecraft.util.ResourceLocation;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Properties;
 
 public class GlobalCITProperties {
@@ -14,6 +15,7 @@ public class GlobalCITProperties {
     private static int cap = Integer.MAX_VALUE;
     private static String method = "average";
     private static float fade = 0.5f;
+    private static boolean hasMethod = false;
     private static boolean loaded = false;
 
     private static final ResourceLocation[] LOCATIONS = {
@@ -27,6 +29,7 @@ public class GlobalCITProperties {
         cap = Integer.MAX_VALUE;
         method = "average";
         fade = 0.5f;
+        hasMethod = false;
         loaded = true;
 
         IResourceManager rm = Minecraft.getMinecraft().getResourceManager();
@@ -39,7 +42,8 @@ public class GlobalCITProperties {
                 if (!capStr.isEmpty()) {
                     try { cap = Integer.parseInt(capStr); } catch (NumberFormatException ignored) {}
                 }
-                method = props.getProperty("method", "average").trim();
+                hasMethod = props.getProperty("method") != null;
+                method = props.getProperty("method", "average").trim().toLowerCase(Locale.ROOT);
                 String fadeStr = props.getProperty("fade", "0.5").trim();
                 try { fade = Float.parseFloat(fadeStr); } catch (NumberFormatException ignored) {}
                 return; // first match wins
@@ -53,4 +57,5 @@ public class GlobalCITProperties {
     public static int getCap() { if (!loaded) reload(); return cap; }
     public static String getMethod() { if (!loaded) reload(); return method; }
     public static float getFade() { if (!loaded) reload(); return fade; }
+    public static boolean hasMethod() { if (!loaded) reload(); return hasMethod; }
 }

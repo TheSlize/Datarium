@@ -92,7 +92,7 @@ public class RespackOptsManager {
 
     public static void removeOverride(String key, boolean defaultValue) {
         USER_OVERRIDES.remove(key);
-        FLAGS.put(key, defaultValue); // Reset runtime to default immediately
+        FLAGS.put(key, defaultValue);
         saveUserConfig();
         markChanges();
     }
@@ -149,7 +149,7 @@ public class RespackOptsManager {
         loaded = false;
     }
 
-    // ConditionParser class (Same as before)
+    // Parser for boolean expressions (e.g. "!optionA & optionB")
     private static class ConditionParser {
         private final String expression;
         private int pos = 0;

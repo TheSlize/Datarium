@@ -6,6 +6,9 @@ public class CEMBox {
     public float[] coordinates; // [x, y, z, sizeX, sizeY, sizeZ]
     public int[] textureOffset; // [u, v]
     public float sizeAdd;
+    public float sizeAddX;
+    public float sizeAddY;
+    public float sizeAddZ;
 
     @Nullable public float[] uvNorth;
     @Nullable public float[] uvSouth;

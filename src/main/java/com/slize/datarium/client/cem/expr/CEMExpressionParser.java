@@ -24,39 +24,24 @@ public class CEMExpressionParser {
             CEMExpressionParser parser = new CEMExpressionParser(expression);
             return parser.parseExpression();
         } catch (Exception e) {
-            DatariumMain.LOGGER.warn("[CEM] Failed to parse expression: {}", expression);
-            e.printStackTrace();
+            DatariumMain.LOGGER.warn("[CEM] Failed to parse expression: {}", expression, e);
             return new CEMLiteral(0);
         }
     }
 
     private CEMExpression parseExpression() {
-        return parseOr();
+        return parseLogical();
     }
 
-    private CEMExpression parseOr() {
-        CEMExpression left = parseAnd();
-        skipWhitespace();
-
-        while (pos < length) {
-            if (match("||")) {
-                CEMExpression right = parseAnd();
-                left = new CEMBinaryOp(CEMBinaryOp.Op.OR, left, right);
-            } else {
-                break;
-            }
-        }
-        return left;
-    }
-
-    private CEMExpression parseAnd() {
+    private CEMExpression parseLogical() {
         CEMExpression left = parseComparison();
         skipWhitespace();
 
         while (pos < length) {
-            if (match("&&")) {
-                CEMExpression right = parseComparison();
-                left = new CEMBinaryOp(CEMBinaryOp.Op.AND, left, right);
+            if (match("||")) {
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.OR, left, parseComparison());
+            } else if (match("&&")) {
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.AND, left, parseComparison());
             } else {
                 break;
             }
@@ -70,17 +55,17 @@ public class CEMExpressionParser {
 
         while (pos < length) {
             if (match("==")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.EQ, left, parseAddSub());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.EQ, left, parseAddSub());
             } else if (match("!=")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.NEQ, left, parseAddSub());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.NEQ, left, parseAddSub());
             } else if (match("<=")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.LTE, left, parseAddSub());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.LTE, left, parseAddSub());
             } else if (match(">=")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.GTE, left, parseAddSub());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.GTE, left, parseAddSub());
             } else if (match("<")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.LT, left, parseAddSub());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.LT, left, parseAddSub());
             } else if (match(">")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.GT, left, parseAddSub());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.GT, left, parseAddSub());
             } else {
                 break;
             }
@@ -94,9 +79,9 @@ public class CEMExpressionParser {
 
         while (pos < length) {
             if (match("+")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.ADD, left, parseMulDiv());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.ADD, left, parseMulDiv());
             } else if (match("-")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.SUB, left, parseMulDiv());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.SUB, left, parseMulDiv());
             } else {
                 break;
             }
@@ -110,11 +95,11 @@ public class CEMExpressionParser {
 
         while (pos < length) {
             if (match("*")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.MUL, left, parseUnary());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.MUL, left, parseUnary());
             } else if (match("/")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.DIV, left, parseUnary());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.DIV, left, parseUnary());
             } else if (match("%")) {
-                left = new CEMBinaryOp(CEMBinaryOp.Op.MOD, left, parseUnary());
+                left = CEMBinaryOp.of(CEMBinaryOp.Op.MOD, left, parseUnary());
             } else {
                 break;
             }
@@ -126,10 +111,10 @@ public class CEMExpressionParser {
         skipWhitespace();
 
         if (match("-")) {
-            return new CEMUnaryOp(CEMUnaryOp.Op.NEG, parseUnary());
+            return CEMUnaryOp.of(CEMUnaryOp.Op.NEG, parseUnary());
         }
         if (match("!")) {
-            return new CEMUnaryOp(CEMUnaryOp.Op.NOT, parseUnary());
+            return CEMUnaryOp.of(CEMUnaryOp.Op.NOT, parseUnary());
         }
         if (match("+")) {
             return parseUnary();
@@ -147,7 +132,6 @@ public class CEMExpressionParser {
 
         char c = expression.charAt(pos);
 
-        // Parentheses
         if (c == '(') {
             pos++;
             CEMExpression expr = parseExpression();
@@ -158,12 +142,10 @@ public class CEMExpressionParser {
             return expr;
         }
 
-        // Number
         if (Character.isDigit(c) || c == '.') {
             return parseNumber();
         }
 
-        // Identifier (variable or function)
         if (Character.isLetter(c) || c == '_') {
             return parseIdentifierOrFunction();
         }
@@ -207,7 +189,7 @@ public class CEMExpressionParser {
 
         while (pos < length) {
             char c = expression.charAt(pos);
-            if (Character.isLetterOrDigit(c) || c == '_' || c == '.') {
+            if (Character.isLetterOrDigit(c) || c == '_' || c == '.' || c == ':') {
                 pos++;
             } else {
                 break;
@@ -217,32 +199,102 @@ public class CEMExpressionParser {
         String identifier = expression.substring(start, pos);
         skipWhitespace();
 
-        // Check for function call
+        if (identifier.equals("nbt")) {
+            pos++;
+            int depth = 1;
+            int argStart = pos;
+            while (pos < length && depth > 0) {
+                char ch = expression.charAt(pos);
+                if (ch == '(') depth++;
+                else if (ch == ')') depth--;
+                if (depth > 0) pos++;
+            }
+            String raw = expression.substring(argStart, pos);
+            if (pos < length) pos++;
+            int comma = raw.indexOf(',');
+            return new CEMNbtQuery(
+                    (comma >= 0 ? raw.substring(0, comma) : raw).trim(),
+                    (comma >= 0 ? raw.substring(comma + 1) : "").trim());
+        }
+
+        switch (identifier) {
+            case "pi": return new CEMLiteral(Math.PI);
+            case "true": return new CEMLiteral(1);
+            case "false": return new CEMLiteral(0);
+            case "e": return new CEMLiteral(Math.E);
+            case "nan": return new CEMLiteral(Double.NaN);
+            default: break;
+        }
+
         if (pos < length && expression.charAt(pos) == '(') {
-            pos++; // consume '('
+            pos++;
             List<CEMExpression> args = new ArrayList<>();
+            boolean print = identifier.equals("print") || identifier.equals("printb");
 
-            skipWhitespace();
-            if (pos < length && expression.charAt(pos) != ')') {
-                args.add(parseExpression());
+            int argCount = countArgs();
+            int rawIndex = -1;
+            if (print && argCount == 3) rawIndex = 0;
+            else if (identifier.equals("catch") && argCount == 3) rawIndex = 2;
 
-                skipWhitespace();
-                while (pos < length && expression.charAt(pos) == ',') {
-                    pos++; // consume ','
-                    args.add(parseExpression());
+            for (int i = 0; i < argCount; i++) {
+                if (i > 0) {
                     skipWhitespace();
+                    if (pos < length && expression.charAt(pos) == ',') pos++;
+                }
+                skipWhitespace();
+                int argStart = pos;
+                if (i == rawIndex) {
+                    args.add(new CEMLiteral(CEMFunction.label(scanRawArg())));
+                } else {
+                    args.add(parseExpression());
+                    if (print && argCount == 1) {
+                        args.add(0, new CEMLiteral(CEMFunction.label(expression.substring(argStart, pos).trim())));
+                        args.add(1, new CEMLiteral(1));
+                    }
                 }
             }
 
+            skipWhitespace();
             if (pos < length && expression.charAt(pos) == ')') {
-                pos++; // consume ')'
+                pos++;
             }
 
-            return new CEMFunction(identifier, args);
+            return makeFunction(identifier, args);
         }
 
-        // It's a variable
         return new CEMVariable(identifier);
+    }
+
+    private int countArgs() {
+        int i = pos;
+        while (i < length && Character.isWhitespace(expression.charAt(i))) i++;
+        if (i >= length || expression.charAt(i) == ')') return 0;
+        int depth = 0;
+        int count = 1;
+        for (; i < length; i++) {
+            char c = expression.charAt(i);
+            if (c == '(') depth++;
+            else if (c == ')') {
+                if (depth == 0) break;
+                depth--;
+            } else if (c == ',' && depth == 0) count++;
+        }
+        return count;
+    }
+
+    private String scanRawArg() {
+        int start = pos;
+        int depth = 0;
+        while (pos < length) {
+            char c = expression.charAt(pos);
+            if (c == '(') depth++;
+            else if (c == ')') {
+                if (depth == 0) break;
+                depth--;
+            } else if (c == ',' && depth == 0) break;
+            pos++;
+        }
+        return expression.substring(start, pos).trim();
     }
 
     private void skipWhitespace() {
@@ -253,16 +305,19 @@ public class CEMExpressionParser {
 
     private boolean match(String s) {
         skipWhitespace();
-        if (pos + s.length() <= length && expression.startsWith(s, pos)) {
-            // Make sure we're not matching a prefix of a longer operator
-            if (s.length() == 1 && (s.equals("<") || s.equals(">") || s.equals("="))) {
-                if (pos + 1 < length && expression.charAt(pos + 1) == '=') {
-                    return false;
-                }
-            }
+        if (expression.startsWith(s, pos)) {
             pos += s.length();
             return true;
         }
         return false;
+    }
+
+    private static CEMExpression makeFunction(String name, List<CEMExpression> args) {
+        // torad/todeg appear ~200 times, lower them to a multiply.
+        if (args.size() == 1 && (name.equals("torad") || name.equals("todeg"))) {
+            double k = name.equals("torad") ? Math.PI / 180.0 : 180.0 / Math.PI;
+            return CEMBinaryOp.of(CEMBinaryOp.Op.MUL, args.getFirst(), new CEMLiteral(k));
+        }
+        return CEMFunction.of(name, args);
     }
 }

@@ -1,6 +1,7 @@
 package com.slize.datarium.mixin.render.model.layered;
 
 import com.slize.datarium.client.cit.CITArmorHandler;
+import com.slize.datarium.client.cit.CITGlintRenderer;
 import com.slize.datarium.mixin.accessors.ILayerElytraAccessor;
 import net.minecraft.client.model.ModelElytra;
 import net.minecraft.client.renderer.GlStateManager;
@@ -31,6 +32,7 @@ public abstract class MixinLayerElytra {
                                           float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale,
                                           CallbackInfo ci) {
         ItemStack chest = entity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+        CITGlintRenderer.setArmorStack(chest);
         if (chest.isEmpty() || chest.getItem() != Items.ELYTRA) return;
 
         ResourceLocation cit = CITArmorHandler.getElytraTexture(chest);
@@ -60,6 +62,14 @@ public abstract class MixinLayerElytra {
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();
 
+        CITGlintRenderer.setArmorStack(ItemStack.EMPTY);
         ci.cancel();
+    }
+
+    @Inject(method = "doRenderLayer", at = @At("RETURN"))
+    private void datarium$afterDoRenderLayer(EntityLivingBase entity, float limbSwing, float limbSwingAmount,
+                                             float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale,
+                                             CallbackInfo ci) {
+        CITGlintRenderer.setArmorStack(ItemStack.EMPTY);
     }
 }

@@ -1,0 +1,83 @@
+Datarium
+Copyright (c) 2026 Th3_Sl1ze and contributors
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Lesser General Public License as published by the Free
+Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+details.
+
+The full license texts are in the LICENSE (GNU LGPL v3) and GPL-3.0.txt (GNU GPL v3)
+files. Source code: https://github.com/TheSlize/Datarium
+
+The license above covers the code of Datarium. It does not cover the Minecraft
+assets listed in the "Minecraft assets" section at the end of this file.
+
+--------------------------------------------------------------------------------
+Third-party work
+--------------------------------------------------------------------------------
+
+Entity Texture Features, by Traben
+https://github.com/Traben-0/Entity_Texture_Features
+Licensed under the GNU Lesser General Public License v3.
+
+  The Custom Entity Textures implementation (com.slize.datarium.client.cet and
+  com.slize.datarium.mixin.render.cet) is derived from Entity Texture Features.
+  It was ported to Minecraft 1.12.2 / Cleanroom and modified by Th3_Sl1ze,
+  starting in 2026.
+
+Entity Model Features, by Traben
+https://github.com/Traben-0/Entity_Model_Features
+Licensed under the GNU Lesser General Public License v3.
+
+  The Custom Entity Models animation API (com.slize.datarium.api.CEMAnimationApi)
+  is modelled on the Entity Model Features animation API, and parts of the Custom
+  Entity Models implementation (com.slize.datarium.client.cem) follow its
+  behaviour. Adapted for Minecraft 1.12.2 / Cleanroom by Th3_Sl1ze, starting in
+  2026.
+
+Cleanroom mod template, by kappa-maintainer
+Licensed under the MIT License; see MIT.txt.
+
+  The build scripts and project skeleton come from this template.
+
+Mod Menu, by Prospector
+https://github.com/TerraformersMC/ModMenu
+Licensed under the MIT License; see MIT.txt.
+
+  The configure button texture (assets/datarium/textures/gui/configure_button.png)
+  is the unmodified Mod Menu texture. It was obtained through Respackopts by
+  JFronny, which shipped it while Respackopts was licensed under the MIT License.
+
+--------------------------------------------------------------------------------
+Formats implemented without third-party code
+--------------------------------------------------------------------------------
+
+Datarium reads the resource pack formats defined by OptiFine (sp614x), CIT Resewn
+(SHsuperCM, https://github.com/SHsuperCM/CITResewn) and Respackopts (JFronny,
+https://git.frohnmeyer-wds.de/JfMods/Respackopts). These features are independent
+implementations; no verbatim code from those projects is included. The only file
+shared with them is the configure button texture credited above.
+
+--------------------------------------------------------------------------------
+Minecraft assets
+--------------------------------------------------------------------------------
+
+The files under
+  assets/datarium/textures/entity/villager/
+  assets/datarium/textures/entity/zombie_villager/
+  assets/datarium/textures/entity/horse/
+  assets/datarium/font/
+  assets/minecraft/textures/entity/iron_golem/
+  assets/minecraft/textures/font/
+are original or adapted Minecraft assets, copyright Mojang AB / Microsoft.
+They are included only so that resource packs written for newer versions of
+the game render correctly on 1.12.2. They are not licensed under the GNU LGPL
+or GPL, no rights to them are granted by this project, and they remain subject
+to the Minecraft EULA (https://www.minecraft.net/eula) and Usage Guidelines.
+
+Datarium is not an official Minecraft product and is not approved by or
+associated with Mojang or Microsoft.

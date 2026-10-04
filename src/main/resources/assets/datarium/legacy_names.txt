@@ -1,0 +1,1626 @@
+# Legacy (1.12.2) <-> modern asset and registry names, keyed by the resource pack format that introduced them.
+# Texture and model names were matched against the vanilla 1.12.2, 1.13.2, 1.16.4, 1.20.1 and 26.2 assets.
+#
+# T <legacy texture> <format>:<modern texture>[@<cem model>] ...   under textures/, without .png
+#     "@model" - only interchangeable while that CEM model is rendering, "@" - never drawn in place of the legacy file
+#     "!" - 1.13+ still ships the legacy file name, but for something else
+# L <legacy texture> <cem model> <modern layer> ...                modern layers composited while that CEM model is rendering
+# M <legacy item model> <format>:<modern item model> ...           under models/item/, without .json
+#     "!" - 1.13+ reuses the legacy file name for something else
+# I <modern item id> <legacy item id>[:<metadata>]
+# B <modern block id> <legacy block id>[:<property>=<value>...] ...
+# E <legacy entity id> <cem model> ...                             .jem names tried in order
+# P <model class> <mcp field>|<srg field>[<n>] <cem part> ...      1.12.2 ModelRenderer field behind a CEM part
+#     "[n]" - element n of a ModelRenderer[] field, "[]" - every element, as <cem part>1, <cem part>2, ...
+#     "*" as the class - any model outside net.minecraft, matched by field name alone
+# H <cem part> <host part>                                         part with no 1.12.2 field, drawn together with its host
+# A <cem part> <source part> <cem model> ...                       part that follows the animated transform of the source
+# R <cem part> <parent part> <cem model> ...                       part rendered inside the frame of the parent
+
+T blocks/anvil_base 4:block/anvil
+T blocks/anvil_top_damaged_0 4:block/anvil_top
+T blocks/anvil_top_damaged_1 4:block/chipped_anvil_top
+T blocks/anvil_top_damaged_2 4:block/damaged_anvil_top
+T blocks/beetroots_stage_0 4:block/beetroots_stage0
+T blocks/beetroots_stage_1 4:block/beetroots_stage1
+T blocks/beetroots_stage_2 4:block/beetroots_stage2
+T blocks/beetroots_stage_3 4:block/beetroots_stage3
+T blocks/brick 4:block/bricks
+T blocks/carrots_stage_0 4:block/carrots_stage0
+T blocks/carrots_stage_1 4:block/carrots_stage1
+T blocks/carrots_stage_2 4:block/carrots_stage2
+T blocks/carrots_stage_3 4:block/carrots_stage3
+T blocks/cobblestone_mossy 4:block/mossy_cobblestone
+T blocks/cocoa_stage_0 4:block/cocoa_stage0
+T blocks/cocoa_stage_1 4:block/cocoa_stage1
+T blocks/cocoa_stage_2 4:block/cocoa_stage2
+T blocks/comparator_off 4:block/comparator
+T blocks/concrete_black 4:block/black_concrete
+T blocks/concrete_blue 4:block/blue_concrete
+T blocks/concrete_brown 4:block/brown_concrete
+T blocks/concrete_cyan 4:block/cyan_concrete
+T blocks/concrete_gray 4:block/gray_concrete
+T blocks/concrete_green 4:block/green_concrete
+T blocks/concrete_light_blue 4:block/light_blue_concrete
+T blocks/concrete_lime 4:block/lime_concrete
+T blocks/concrete_magenta 4:block/magenta_concrete
+T blocks/concrete_orange 4:block/orange_concrete
+T blocks/concrete_pink 4:block/pink_concrete
+T blocks/concrete_powder_black 4:block/black_concrete_powder
+T blocks/concrete_powder_blue 4:block/blue_concrete_powder
+T blocks/concrete_powder_brown 4:block/brown_concrete_powder
+T blocks/concrete_powder_cyan 4:block/cyan_concrete_powder
+T blocks/concrete_powder_gray 4:block/gray_concrete_powder
+T blocks/concrete_powder_green 4:block/green_concrete_powder
+T blocks/concrete_powder_light_blue 4:block/light_blue_concrete_powder
+T blocks/concrete_powder_lime 4:block/lime_concrete_powder
+T blocks/concrete_powder_magenta 4:block/magenta_concrete_powder
+T blocks/concrete_powder_orange 4:block/orange_concrete_powder
+T blocks/concrete_powder_pink 4:block/pink_concrete_powder
+T blocks/concrete_powder_purple 4:block/purple_concrete_powder
+T blocks/concrete_powder_red 4:block/red_concrete_powder
+T blocks/concrete_powder_silver 4:block/light_gray_concrete_powder
+T blocks/concrete_powder_white 4:block/white_concrete_powder
+T blocks/concrete_powder_yellow 4:block/yellow_concrete_powder
+T blocks/concrete_purple 4:block/purple_concrete
+T blocks/concrete_red 4:block/red_concrete
+T blocks/concrete_silver 4:block/light_gray_concrete
+T blocks/concrete_white 4:block/white_concrete
+T blocks/concrete_yellow 4:block/yellow_concrete
+T blocks/deadbush 4:block/dead_bush
+T blocks/dirt_podzol_side 4:block/podzol_side
+T blocks/dirt_podzol_top 4:block/podzol_top
+T blocks/dispenser_front_horizontal 4:block/dispenser_front
+T blocks/door_acacia_lower 4:block/acacia_door_bottom
+T blocks/door_acacia_upper 4:block/acacia_door_top
+T blocks/door_birch_lower 4:block/birch_door_bottom
+T blocks/door_birch_upper 4:block/birch_door_top
+T blocks/door_dark_oak_lower 4:block/dark_oak_door_bottom
+T blocks/door_dark_oak_upper 4:block/dark_oak_door_top
+T blocks/door_iron_lower 4:block/iron_door_bottom
+T blocks/door_iron_upper 4:block/iron_door_top
+T blocks/door_jungle_lower 4:block/jungle_door_bottom
+T blocks/door_jungle_upper 4:block/jungle_door_top
+T blocks/door_spruce_lower 4:block/spruce_door_bottom
+T blocks/door_spruce_upper 4:block/spruce_door_top
+T blocks/door_wood_lower 4:block/oak_door_bottom
+T blocks/door_wood_upper 4:block/oak_door_top
+T blocks/double_plant_fern_bottom 4:block/large_fern_bottom
+T blocks/double_plant_fern_top 4:block/large_fern_top
+T blocks/double_plant_grass_bottom 4:block/tall_grass_bottom
+T blocks/double_plant_grass_top 4:block/tall_grass_top
+T blocks/double_plant_paeonia_bottom 4:block/peony_bottom
+T blocks/double_plant_paeonia_top 4:block/peony_top
+T blocks/double_plant_rose_bottom 4:block/rose_bush_bottom
+T blocks/double_plant_rose_top 4:block/rose_bush_top
+T blocks/double_plant_sunflower_back 4:block/sunflower_back
+T blocks/double_plant_sunflower_bottom 4:block/sunflower_bottom
+T blocks/double_plant_sunflower_front 4:block/sunflower_front
+T blocks/double_plant_sunflower_top 4:block/sunflower_top
+T blocks/double_plant_syringa_bottom 4:block/lilac_bottom
+T blocks/double_plant_syringa_top 4:block/lilac_top
+T blocks/dropper_front_horizontal 4:block/dropper_front
+T blocks/end_bricks 4:block/end_stone_bricks
+T blocks/endframe_eye 4:block/end_portal_frame_eye
+T blocks/endframe_side 4:block/end_portal_frame_side
+T blocks/endframe_top 4:block/end_portal_frame_top
+T blocks/farmland_dry 4:block/farmland
+T blocks/farmland_wet 4:block/farmland_moist
+T blocks/fire_layer_0 4:block/fire_0
+T blocks/fire_layer_1 4:block/fire_1
+T blocks/flower_allium 4:block/allium
+T blocks/flower_blue_orchid 4:block/blue_orchid
+T blocks/flower_dandelion 4:block/dandelion
+T blocks/flower_houstonia 4:block/azure_bluet
+T blocks/flower_oxeye_daisy 4:block/oxeye_daisy
+T blocks/flower_rose 4:block/poppy
+T blocks/flower_tulip_orange 4:block/orange_tulip
+T blocks/flower_tulip_pink 4:block/pink_tulip
+T blocks/flower_tulip_red 4:block/red_tulip
+T blocks/flower_tulip_white 4:block/white_tulip
+T blocks/furnace_front_off 4:block/furnace_front
+T blocks/glass_black 4:block/black_stained_glass
+T blocks/glass_blue 4:block/blue_stained_glass
+T blocks/glass_brown 4:block/brown_stained_glass
+T blocks/glass_cyan 4:block/cyan_stained_glass
+T blocks/glass_gray 4:block/gray_stained_glass
+T blocks/glass_green 4:block/green_stained_glass
+T blocks/glass_light_blue 4:block/light_blue_stained_glass
+T blocks/glass_lime 4:block/lime_stained_glass
+T blocks/glass_magenta 4:block/magenta_stained_glass
+T blocks/glass_orange 4:block/orange_stained_glass
+T blocks/glass_pane_top_black 4:block/black_stained_glass_pane_top
+T blocks/glass_pane_top_blue 4:block/blue_stained_glass_pane_top
+T blocks/glass_pane_top_brown 4:block/brown_stained_glass_pane_top
+T blocks/glass_pane_top_cyan 4:block/cyan_stained_glass_pane_top
+T blocks/glass_pane_top_gray 4:block/gray_stained_glass_pane_top
+T blocks/glass_pane_top_green 4:block/green_stained_glass_pane_top
+T blocks/glass_pane_top_light_blue 4:block/light_blue_stained_glass_pane_top
+T blocks/glass_pane_top_lime 4:block/lime_stained_glass_pane_top
+T blocks/glass_pane_top_magenta 4:block/magenta_stained_glass_pane_top
+T blocks/glass_pane_top_orange 4:block/orange_stained_glass_pane_top
+T blocks/glass_pane_top_pink 4:block/pink_stained_glass_pane_top
+T blocks/glass_pane_top_purple 4:block/purple_stained_glass_pane_top
+T blocks/glass_pane_top_red 4:block/red_stained_glass_pane_top
+T blocks/glass_pane_top_silver 4:block/light_gray_stained_glass_pane_top
+T blocks/glass_pane_top_white 4:block/white_stained_glass_pane_top
+T blocks/glass_pane_top_yellow 4:block/yellow_stained_glass_pane_top
+T blocks/glass_pink 4:block/pink_stained_glass
+T blocks/glass_purple 4:block/purple_stained_glass
+T blocks/glass_red 4:block/red_stained_glass
+T blocks/glass_silver 4:block/light_gray_stained_glass
+T blocks/glass_white 4:block/white_stained_glass
+T blocks/glass_yellow 4:block/yellow_stained_glass
+T blocks/glazed_terracotta_black 4:block/black_glazed_terracotta
+T blocks/glazed_terracotta_blue 4:block/blue_glazed_terracotta
+T blocks/glazed_terracotta_brown 4:block/brown_glazed_terracotta
+T blocks/glazed_terracotta_cyan 4:block/cyan_glazed_terracotta
+T blocks/glazed_terracotta_gray 4:block/gray_glazed_terracotta
+T blocks/glazed_terracotta_green 4:block/green_glazed_terracotta
+T blocks/glazed_terracotta_light_blue 4:block/light_blue_glazed_terracotta
+T blocks/glazed_terracotta_lime 4:block/lime_glazed_terracotta
+T blocks/glazed_terracotta_magenta 4:block/magenta_glazed_terracotta
+T blocks/glazed_terracotta_orange 4:block/orange_glazed_terracotta
+T blocks/glazed_terracotta_pink 4:block/pink_glazed_terracotta
+T blocks/glazed_terracotta_purple 4:block/purple_glazed_terracotta
+T blocks/glazed_terracotta_red 4:block/red_glazed_terracotta
+T blocks/glazed_terracotta_silver 4:block/light_gray_glazed_terracotta
+T blocks/glazed_terracotta_white 4:block/white_glazed_terracotta
+T blocks/glazed_terracotta_yellow 4:block/yellow_glazed_terracotta
+T blocks/grass_path_side 4:block/grass_path_side 7:block/dirt_path_side
+T blocks/grass_path_top 4:block/grass_path_top 7:block/dirt_path_top
+T blocks/grass_side 4:block/grass_block_side
+T blocks/grass_side_overlay 4:block/grass_block_side_overlay
+T blocks/grass_side_snowed 4:block/grass_block_snow
+T blocks/grass_top 4:block/grass_block_top
+T blocks/hardened_clay 4:block/terracotta
+T blocks/hardened_clay_stained_black 4:block/black_terracotta
+T blocks/hardened_clay_stained_blue 4:block/blue_terracotta
+T blocks/hardened_clay_stained_brown 4:block/brown_terracotta
+T blocks/hardened_clay_stained_cyan 4:block/cyan_terracotta
+T blocks/hardened_clay_stained_gray 4:block/gray_terracotta
+T blocks/hardened_clay_stained_green 4:block/green_terracotta
+T blocks/hardened_clay_stained_light_blue 4:block/light_blue_terracotta
+T blocks/hardened_clay_stained_lime 4:block/lime_terracotta
+T blocks/hardened_clay_stained_magenta 4:block/magenta_terracotta
+T blocks/hardened_clay_stained_orange 4:block/orange_terracotta
+T blocks/hardened_clay_stained_pink 4:block/pink_terracotta
+T blocks/hardened_clay_stained_purple 4:block/purple_terracotta
+T blocks/hardened_clay_stained_red 4:block/red_terracotta
+T blocks/hardened_clay_stained_silver 4:block/light_gray_terracotta
+T blocks/hardened_clay_stained_white 4:block/white_terracotta
+T blocks/hardened_clay_stained_yellow 4:block/yellow_terracotta
+T blocks/ice_packed 4:block/packed_ice
+T blocks/itemframe_background 4:block/item_frame
+T blocks/leaves_acacia 4:block/acacia_leaves
+T blocks/leaves_big_oak 4:block/dark_oak_leaves
+T blocks/leaves_birch 4:block/birch_leaves
+T blocks/leaves_jungle 4:block/jungle_leaves
+T blocks/leaves_oak 4:block/oak_leaves
+T blocks/leaves_spruce 4:block/spruce_leaves
+T blocks/log_acacia 4:block/acacia_log
+T blocks/log_acacia_top 4:block/acacia_log_top
+T blocks/log_big_oak 4:block/dark_oak_log
+T blocks/log_big_oak_top 4:block/dark_oak_log_top
+T blocks/log_birch 4:block/birch_log
+T blocks/log_birch_top 4:block/birch_log_top
+T blocks/log_jungle 4:block/jungle_log
+T blocks/log_jungle_top 4:block/jungle_log_top
+T blocks/log_oak 4:block/oak_log
+T blocks/log_oak_top 4:block/oak_log_top
+T blocks/log_spruce 4:block/spruce_log
+T blocks/log_spruce_top 4:block/spruce_log_top
+T blocks/melon_stem_connected 4:block/attached_melon_stem
+T blocks/melon_stem_disconnected 4:block/melon_stem
+T blocks/mob_spawner 4:block/spawner
+T blocks/mushroom_block_skin_brown 4:block/brown_mushroom_block
+T blocks/mushroom_block_skin_red 4:block/red_mushroom_block
+T blocks/mushroom_block_skin_stem 4:block/mushroom_stem
+T blocks/mushroom_brown 4:block/brown_mushroom
+T blocks/mushroom_red 4:block/red_mushroom
+T blocks/nether_brick 4:block/nether_bricks
+T blocks/nether_wart_stage_0 4:block/nether_wart_stage0
+T blocks/nether_wart_stage_1 4:block/nether_wart_stage1
+T blocks/nether_wart_stage_2 4:block/nether_wart_stage2
+T blocks/noteblock 4:block/note_block
+T blocks/observer_back_lit 4:block/observer_back_on
+T blocks/piston_top_normal 4:block/piston_top
+T blocks/planks_acacia 4:block/acacia_planks
+T blocks/planks_big_oak 4:block/dark_oak_planks
+T blocks/planks_birch 4:block/birch_planks
+T blocks/planks_jungle 4:block/jungle_planks
+T blocks/planks_oak 4:block/oak_planks
+T blocks/planks_spruce 4:block/spruce_planks
+T blocks/portal 4:block/nether_portal
+T blocks/potatoes_stage_0 4:block/potatoes_stage0
+T blocks/potatoes_stage_1 4:block/potatoes_stage1
+T blocks/potatoes_stage_2 4:block/potatoes_stage2
+T blocks/potatoes_stage_3 4:block/potatoes_stage3
+T blocks/prismarine_dark 4:block/dark_prismarine
+T blocks/prismarine_rough 4:block/prismarine
+T blocks/pumpkin_face_off 4:block/carved_pumpkin
+T blocks/pumpkin_face_on 4:block/jack_o_lantern
+T blocks/pumpkin_stem_connected 4:block/attached_pumpkin_stem
+T blocks/pumpkin_stem_disconnected 4:block/pumpkin_stem
+T blocks/purpur_pillar 4:block/purpur_pillar 76:block/purpur_pillar_side
+T blocks/quartz_block_chiseled 4:block/chiseled_quartz_block
+T blocks/quartz_block_chiseled_top 4:block/chiseled_quartz_block_top
+T blocks/quartz_block_lines 4:block/quartz_pillar 76:block/quartz_pillar_side
+T blocks/quartz_block_lines_top 4:block/quartz_pillar_top
+T blocks/quartz_ore 4:block/nether_quartz_ore
+T blocks/rail_activator 4:block/activator_rail
+T blocks/rail_activator_powered 4:block/activator_rail_on
+T blocks/rail_detector 4:block/detector_rail
+T blocks/rail_detector_powered 4:block/detector_rail_on
+T blocks/rail_golden 4:block/powered_rail
+T blocks/rail_golden_powered 4:block/powered_rail_on
+T blocks/rail_normal 4:block/rail
+T blocks/rail_normal_turned 4:block/rail_corner
+T blocks/red_nether_brick 4:block/red_nether_bricks
+T blocks/red_sandstone_carved 4:block/chiseled_red_sandstone
+T blocks/red_sandstone_normal 4:block/red_sandstone
+T blocks/red_sandstone_smooth 4:block/cut_red_sandstone
+T blocks/redstone_lamp_off 4:block/redstone_lamp
+T blocks/redstone_torch_on 4:block/redstone_torch
+T blocks/reeds 4:block/sugar_cane
+T blocks/repeater_off 4:block/repeater
+T blocks/sandstone_carved 4:block/chiseled_sandstone
+T blocks/sandstone_normal 4:block/sandstone
+T blocks/sandstone_smooth 4:block/cut_sandstone
+T blocks/sapling_acacia 4:block/acacia_sapling
+T blocks/sapling_birch 4:block/birch_sapling
+T blocks/sapling_jungle 4:block/jungle_sapling
+T blocks/sapling_oak 4:block/oak_sapling
+T blocks/sapling_roofed_oak 4:block/dark_oak_sapling
+T blocks/sapling_spruce 4:block/spruce_sapling
+T blocks/shulker_top_black 4:block/black_shulker_box
+T blocks/shulker_top_blue 4:block/blue_shulker_box
+T blocks/shulker_top_brown 4:block/brown_shulker_box
+T blocks/shulker_top_cyan 4:block/cyan_shulker_box
+T blocks/shulker_top_gray 4:block/gray_shulker_box
+T blocks/shulker_top_green 4:block/green_shulker_box
+T blocks/shulker_top_light_blue 4:block/light_blue_shulker_box
+T blocks/shulker_top_lime 4:block/lime_shulker_box
+T blocks/shulker_top_magenta 4:block/magenta_shulker_box
+T blocks/shulker_top_orange 4:block/orange_shulker_box
+T blocks/shulker_top_pink 4:block/pink_shulker_box
+T blocks/shulker_top_purple 4:block/purple_shulker_box
+T blocks/shulker_top_red 4:block/red_shulker_box
+T blocks/shulker_top_silver 4:block/light_gray_shulker_box
+T blocks/shulker_top_white 4:block/white_shulker_box
+T blocks/shulker_top_yellow 4:block/yellow_shulker_box
+T blocks/slime 4:block/slime_block
+T blocks/sponge_wet 4:block/wet_sponge
+T blocks/stone_andesite 4:block/andesite
+T blocks/stone_andesite_smooth 4:block/polished_andesite
+T blocks/stone_diorite 4:block/diorite
+T blocks/stone_diorite_smooth 4:block/polished_diorite
+T blocks/stone_granite 4:block/granite
+T blocks/stone_granite_smooth 4:block/polished_granite
+T blocks/stone_slab_side 4:block/stone_slab_side 4:block/smooth_stone_slab_side
+T blocks/stone_slab_top 4:block/stone_slab_top 4:block/smooth_stone
+T blocks/stonebrick 4:block/stone_bricks
+T blocks/stonebrick_carved 4:block/chiseled_stone_bricks
+T blocks/stonebrick_cracked 4:block/cracked_stone_bricks
+T blocks/stonebrick_mossy 4:block/mossy_stone_bricks
+T blocks/tallgrass 4:block/grass 22:block/short_grass
+T blocks/torch_on 4:block/torch
+T blocks/trapdoor 4:block/oak_trapdoor
+T blocks/trip_wire 4:block/tripwire
+T blocks/trip_wire_source 4:block/tripwire_hook
+T blocks/water_flow 4:block/water_flow@
+T blocks/water_overlay 4:block/water_overlay@
+T blocks/water_still 4:block/water_still@
+T blocks/waterlily 4:block/lily_pad
+T blocks/web 4:block/cobweb
+T blocks/wheat_stage_0 4:block/wheat_stage0
+T blocks/wheat_stage_1 4:block/wheat_stage1
+T blocks/wheat_stage_2 4:block/wheat_stage2
+T blocks/wheat_stage_3 4:block/wheat_stage3
+T blocks/wheat_stage_4 4:block/wheat_stage4
+T blocks/wheat_stage_5 4:block/wheat_stage5
+T blocks/wheat_stage_6 4:block/wheat_stage6
+T blocks/wheat_stage_7 4:block/wheat_stage7
+T blocks/wool_colored_black 4:block/black_wool
+T blocks/wool_colored_blue 4:block/blue_wool
+T blocks/wool_colored_brown 4:block/brown_wool
+T blocks/wool_colored_cyan 4:block/cyan_wool
+T blocks/wool_colored_gray 4:block/gray_wool
+T blocks/wool_colored_green 4:block/green_wool
+T blocks/wool_colored_light_blue 4:block/light_blue_wool
+T blocks/wool_colored_lime 4:block/lime_wool
+T blocks/wool_colored_magenta 4:block/magenta_wool
+T blocks/wool_colored_orange 4:block/orange_wool
+T blocks/wool_colored_pink 4:block/pink_wool
+T blocks/wool_colored_purple 4:block/purple_wool
+T blocks/wool_colored_red 4:block/red_wool
+T blocks/wool_colored_silver 4:block/light_gray_wool
+T blocks/wool_colored_white 4:block/white_wool
+T blocks/wool_colored_yellow 4:block/yellow_wool
+T entity/alex 12:entity/player/slim/alex
+T entity/armorstand/wood 76:entity/armorstand/armorstand
+T entity/banner_base 76:entity/banner/banner_base
+T entity/bat 76:entity/bat/bat@bat
+T entity/beacon_beam 76:entity/beacon/beacon_beam
+T entity/bed/silver 4:entity/bed/light_gray
+T entity/blaze 76:entity/blaze/blaze
+T entity/boat/boat_acacia 4:entity/boat/acacia
+T entity/boat/boat_birch 4:entity/boat/birch
+T entity/boat/boat_darkoak 4:entity/boat/dark_oak
+T entity/boat/boat_jungle 4:entity/boat/jungle
+T entity/boat/boat_oak 4:entity/boat/oak
+T entity/boat/boat_spruce 4:entity/boat/spruce
+T entity/cat/black 76:entity/cat/cat_black
+T entity/cat/red 76:entity/cat/cat_red
+T entity/cat/siamese 76:entity/cat/cat_siamese
+T entity/chest/christmas_double 5:entity/chest/christmas_left@
+T entity/chest/normal_double 5:entity/chest/normal_left@
+T entity/chest/trapped_double 5:entity/chest/trapped_left@
+T entity/chicken 55:entity/chicken/temperate_chicken 76:entity/chicken/chicken_temperate
+T entity/cow/cow 55:entity/cow/temperate_cow 76:entity/cow/cow_temperate
+T entity/cow/mooshroom 4:entity/cow/red_mooshroom 76:entity/cow/mooshroom_red
+T entity/elytra 42:entity/equipment/wings/elytra
+T entity/enchanting_table_book 76:entity/enchantment/enchanting_table_book
+T entity/end_gateway_beam 76:entity/end_portal/end_gateway_beam
+T entity/end_portal 76:entity/end_portal/end_portal
+T entity/endercrystal/endercrystal 4:entity/end_crystal/end_crystal
+T entity/endercrystal/endercrystal_beam 4:entity/end_crystal/end_crystal_beam
+T entity/endermite 76:entity/endermite/endermite
+T entity/experience_orb 76:entity/experience/experience_orb
+T entity/guardian 76:entity/guardian/guardian
+T entity/guardian_beam 76:entity/guardian/guardian_beam
+T entity/guardian_elder 76:entity/guardian/guardian_elder
+T entity/horse/armor/horse_armor_diamond 4:entity/horse/armor/horse_armor_diamond@horse_armor 42:entity/equipment/horse_body/diamond@horse_armor
+T entity/horse/armor/horse_armor_gold 4:entity/horse/armor/horse_armor_gold@horse_armor 42:entity/equipment/horse_body/gold@horse_armor
+T entity/horse/armor/horse_armor_iron 4:entity/horse/armor/horse_armor_iron@horse_armor 42:entity/equipment/horse_body/iron@horse_armor
+T entity/illager/fangs 4:entity/illager/evoker_fangs
+T entity/illager/illusionist 4:entity/illager/illusioner
+T entity/iron_golem 5:entity/iron_golem/iron_golem
+T entity/lead_knot 76:entity/lead_knot/lead_knot
+T entity/llama/decor/decor_black 4:entity/llama/decor/black 42:entity/equipment/llama_body/black
+T entity/llama/decor/decor_blue 4:entity/llama/decor/blue 42:entity/equipment/llama_body/blue
+T entity/llama/decor/decor_brown 4:entity/llama/decor/brown 42:entity/equipment/llama_body/brown
+T entity/llama/decor/decor_cyan 4:entity/llama/decor/cyan 42:entity/equipment/llama_body/cyan
+T entity/llama/decor/decor_gray 4:entity/llama/decor/gray 42:entity/equipment/llama_body/gray
+T entity/llama/decor/decor_green 4:entity/llama/decor/green 42:entity/equipment/llama_body/green
+T entity/llama/decor/decor_light_blue 4:entity/llama/decor/light_blue 42:entity/equipment/llama_body/light_blue
+T entity/llama/decor/decor_lime 4:entity/llama/decor/lime 42:entity/equipment/llama_body/lime
+T entity/llama/decor/decor_magenta 4:entity/llama/decor/magenta 42:entity/equipment/llama_body/magenta
+T entity/llama/decor/decor_orange 4:entity/llama/decor/orange 42:entity/equipment/llama_body/orange
+T entity/llama/decor/decor_pink 4:entity/llama/decor/pink 42:entity/equipment/llama_body/pink
+T entity/llama/decor/decor_purple 4:entity/llama/decor/purple 42:entity/equipment/llama_body/purple
+T entity/llama/decor/decor_red 4:entity/llama/decor/red 42:entity/equipment/llama_body/red
+T entity/llama/decor/decor_silver 4:entity/llama/decor/light_gray 42:entity/equipment/llama_body/light_gray
+T entity/llama/decor/decor_white 4:entity/llama/decor/white 42:entity/equipment/llama_body/white
+T entity/llama/decor/decor_yellow 4:entity/llama/decor/yellow 42:entity/equipment/llama_body/yellow
+T entity/llama/llama_brown 4:entity/llama/brown 76:entity/llama/llama_brown
+T entity/llama/llama_creamy 4:entity/llama/creamy 76:entity/llama/llama_creamy
+T entity/llama/llama_gray 4:entity/llama/gray 76:entity/llama/llama_gray
+T entity/llama/llama_white 4:entity/llama/white 76:entity/llama/llama_white
+T entity/llama/spit 76:entity/llama/llama_spit
+T entity/minecart 76:entity/minecart/minecart
+T entity/pig/pig 55:entity/pig/temperate_pig 76:entity/pig/pig_temperate
+T entity/pig/pig_saddle 55:entity/equipment/pig_saddle/saddle
+T entity/projectiles/spectral_arrow 76:entity/projectiles/arrow_spectral
+T entity/projectiles/tipped_arrow 76:entity/projectiles/arrow_tipped
+T entity/rabbit/black 76:entity/rabbit/rabbit_black
+T entity/rabbit/brown 76:entity/rabbit/rabbit_brown
+T entity/rabbit/caerbannog 76:entity/rabbit/rabbit_caerbannog
+T entity/rabbit/gold 76:entity/rabbit/rabbit_gold
+T entity/rabbit/salt 76:entity/rabbit/rabbit_salt
+T entity/rabbit/toast 76:entity/rabbit/rabbit_toast
+T entity/rabbit/white 76:entity/rabbit/rabbit_white
+T entity/rabbit/white_splotched 76:entity/rabbit/rabbit_white_splotched
+T entity/sheep/sheep_fur 55:entity/sheep/sheep_wool
+T entity/shield_base 76:entity/shield/shield_base
+T entity/shield_base_nopattern 76:entity/shield/shield_base_nopattern
+T !entity/shulker/shulker_purple 4:entity/shulker/shulker
+T entity/shulker/shulker_silver 4:entity/shulker/shulker_light_gray
+T entity/sign 4:entity/signs/oak
+T entity/silverfish 76:entity/silverfish/silverfish
+T entity/snowman 4:entity/snow_golem 76:entity/snow_golem/snow_golem
+T entity/spider_eyes 76:entity/spider/spider_eyes
+T entity/squid 7:entity/squid/squid
+T entity/steve 12:entity/player/wide/steve
+T entity/witch 76:entity/witch/witch
+T entity/zombie_pigman 5:entity/piglin/zombified_piglin@zombified_piglin
+T items/apple_golden 4:item/golden_apple
+T items/beef_cooked 4:item/cooked_beef
+T items/beef_raw 4:item/beef
+T items/book_enchanted 4:item/enchanted_book
+T items/book_normal 4:item/book
+T items/book_writable 4:item/writable_book
+T items/book_written 4:item/written_book
+T items/bow_standby 4:item/bow
+T items/broken_elytra 4:item/broken_elytra 46:item/elytra_broken
+T items/bucket_empty 4:item/bucket
+T items/bucket_lava 4:item/lava_bucket
+T items/bucket_milk 4:item/milk_bucket
+T items/bucket_water 4:item/water_bucket
+T items/carrot_golden 4:item/golden_carrot
+T items/chicken_cooked 4:item/cooked_chicken
+T items/chicken_raw 4:item/chicken
+T items/chorus_fruit_popped 4:item/popped_chorus_fruit
+T items/door_acacia 4:item/acacia_door
+T items/door_birch 4:item/birch_door
+T items/door_dark_oak 4:item/dark_oak_door
+T items/door_iron 4:item/iron_door
+T items/door_jungle 4:item/jungle_door
+T items/door_spruce 4:item/spruce_door
+T items/door_wood 4:item/oak_door
+T items/dye_powder_black 4:item/ink_sac
+T items/dye_powder_blue 4:item/lapis_lazuli
+T items/dye_powder_brown 4:item/cocoa_beans
+T items/dye_powder_cyan 4:item/cyan_dye
+T items/dye_powder_gray 4:item/gray_dye
+T items/dye_powder_green 4:item/cactus_green 4:item/green_dye
+T items/dye_powder_light_blue 4:item/light_blue_dye
+T items/dye_powder_lime 4:item/lime_dye
+T items/dye_powder_magenta 4:item/magenta_dye
+T items/dye_powder_orange 4:item/orange_dye
+T items/dye_powder_pink 4:item/pink_dye
+T items/dye_powder_purple 4:item/purple_dye
+T items/dye_powder_red 4:item/rose_red 4:item/red_dye
+T items/dye_powder_silver 4:item/light_gray_dye
+T items/dye_powder_white 4:item/bone_meal
+T items/dye_powder_yellow 4:item/dandelion_yellow 4:item/yellow_dye
+T items/fireball 4:item/fire_charge
+T items/fireworks 4:item/firework_rocket
+T items/fireworks_charge 4:item/firework_star
+T items/fireworks_charge_overlay 4:item/firework_star_overlay
+T items/fish_clownfish_raw 4:item/tropical_fish
+T items/fish_cod_cooked 4:item/cooked_cod
+T items/fish_cod_raw 4:item/cod
+T items/fish_pufferfish_raw 4:item/pufferfish
+T items/fish_salmon_cooked 4:item/cooked_salmon
+T items/fish_salmon_raw 4:item/salmon
+T items/fishing_rod_uncast 4:item/fishing_rod
+T items/gold_axe 4:item/golden_axe
+T items/gold_boots 4:item/golden_boots
+T items/gold_chestplate 4:item/golden_chestplate
+T items/gold_helmet 4:item/golden_helmet
+T items/gold_hoe 4:item/golden_hoe
+T items/gold_horse_armor 4:item/golden_horse_armor
+T items/gold_leggings 4:item/golden_leggings
+T items/gold_pickaxe 4:item/golden_pickaxe
+T items/gold_shovel 4:item/golden_shovel
+T items/gold_sword 4:item/golden_sword
+T items/map_empty 4:item/map
+T items/map_filled 4:item/filled_map
+T items/map_filled_markings 4:item/filled_map_markings
+T items/melon 4:item/melon_slice
+T items/melon_speckled 4:item/glistering_melon_slice
+T items/minecart_chest 4:item/chest_minecart
+T items/minecart_command_block 4:item/command_block_minecart
+T items/minecart_furnace 4:item/furnace_minecart
+T items/minecart_hopper 4:item/hopper_minecart
+T items/minecart_normal 4:item/minecart
+T items/minecart_tnt 4:item/tnt_minecart
+T items/mutton_cooked 4:item/cooked_mutton
+T items/mutton_raw 4:item/mutton
+T items/netherbrick 4:item/nether_brick
+T items/porkchop_cooked 4:item/cooked_porkchop
+T items/porkchop_raw 4:item/porkchop
+T items/potato_baked 4:item/baked_potato
+T items/potato_poisonous 4:item/poisonous_potato
+T items/potion_bottle_drinkable 4:item/potion
+T items/potion_bottle_empty 4:item/glass_bottle
+T items/potion_bottle_lingering 4:item/lingering_potion
+T items/potion_bottle_splash 4:item/splash_potion
+T items/rabbit_cooked 4:item/cooked_rabbit
+T items/rabbit_raw 4:item/rabbit
+T items/record_11 4:item/music_disc_11
+T items/record_13 4:item/music_disc_13
+T items/record_blocks 4:item/music_disc_blocks
+T items/record_cat 4:item/music_disc_cat
+T items/record_chirp 4:item/music_disc_chirp
+T items/record_far 4:item/music_disc_far
+T items/record_mall 4:item/music_disc_mall
+T items/record_mellohi 4:item/music_disc_mellohi
+T items/record_stal 4:item/music_disc_stal
+T items/record_strad 4:item/music_disc_strad
+T items/record_wait 4:item/music_disc_wait
+T items/record_ward 4:item/music_disc_ward
+T items/redstone_dust 4:item/redstone
+T items/reeds 4:item/sugar_cane
+T items/seeds_melon 4:item/melon_seeds
+T items/seeds_pumpkin 4:item/pumpkin_seeds
+T items/seeds_wheat 4:item/wheat_seeds
+T items/sign 4:item/sign 4:item/oak_sign
+T items/slimeball 4:item/slime_ball
+T items/spider_eye_fermented 4:item/fermented_spider_eye
+T items/totem 4:item/totem_of_undying
+T items/wood_axe 4:item/wooden_axe
+T items/wood_hoe 4:item/wooden_hoe
+T items/wood_pickaxe 4:item/wooden_pickaxe
+T items/wood_shovel 4:item/wooden_shovel
+T items/wood_sword 4:item/wooden_sword
+T items/wooden_armorstand 4:item/armor_stand
+T models/armor/chainmail_layer_1 42:entity/equipment/humanoid/chainmail
+T models/armor/chainmail_layer_2 42:entity/equipment/humanoid_leggings/chainmail
+T models/armor/diamond_layer_1 42:entity/equipment/humanoid/diamond
+T models/armor/diamond_layer_2 42:entity/equipment/humanoid_leggings/diamond
+T models/armor/gold_layer_1 42:entity/equipment/humanoid/gold
+T models/armor/gold_layer_2 42:entity/equipment/humanoid_leggings/gold
+T models/armor/iron_layer_1 42:entity/equipment/humanoid/iron
+T models/armor/iron_layer_2 42:entity/equipment/humanoid_leggings/iron
+T models/armor/leather_layer_1 42:entity/equipment/humanoid/leather
+T models/armor/leather_layer_1_overlay 42:entity/equipment/humanoid/leather_overlay
+T models/armor/leather_layer_2 42:entity/equipment/humanoid_leggings/leather
+T models/armor/leather_layer_2_overlay 42:entity/equipment/humanoid_leggings/leather_overlay
+
+L entity/villager/farmer villager entity/villager/villager entity/villager/type/plains entity/villager/profession/farmer
+L entity/zombie_villager/zombie_farmer zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/farmer
+L entity/villager/librarian villager entity/villager/villager entity/villager/type/plains entity/villager/profession/librarian
+L entity/zombie_villager/zombie_librarian zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/librarian
+L entity/villager/priest villager entity/villager/villager entity/villager/type/plains entity/villager/profession/cleric
+L entity/zombie_villager/zombie_priest zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/cleric
+L entity/villager/smith villager entity/villager/villager entity/villager/type/plains entity/villager/profession/armorer
+L entity/zombie_villager/zombie_smith zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/armorer
+L entity/villager/butcher villager entity/villager/villager entity/villager/type/plains entity/villager/profession/butcher
+L entity/zombie_villager/zombie_butcher zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/butcher
+L entity/villager/villager villager entity/villager/villager entity/villager/type/plains
+L entity/zombie_villager/zombie_villager zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains
+
+M andesite_smooth 4:polished_andesite
+M anvil_intact 4:anvil
+M anvil_slightly_damaged 4:chipped_anvil
+M anvil_very_damaged 4:damaged_anvil
+M black_stained_hardened_clay 4:black_terracotta
+M blue_stained_hardened_clay 4:blue_terracotta
+M bottle_drinkable 4:potion
+M bottle_lingering 4:lingering_potion
+M bottle_splash 4:splash_potion
+M brick_block 4:bricks
+M brown_stained_hardened_clay 4:brown_terracotta
+M chiseled_brick_monster_egg 4:infested_chiseled_stone_bricks
+M chiseled_stonebrick 4:chiseled_stone_bricks
+M chorus_fruit_popped 4:popped_chorus_fruit
+M clownfish 4:tropical_fish
+M cobblestone_monster_egg 4:infested_cobblestone
+M cracked_brick_monster_egg 4:infested_cracked_stone_bricks
+M cracked_stonebrick 4:cracked_stone_bricks
+M cyan_stained_hardened_clay 4:cyan_terracotta
+M diorite_smooth 4:polished_diorite
+M double_fern 4:large_fern
+M double_grass 4:tall_grass
+M double_rose 4:rose_bush
+M dye_black 4:ink_sac
+M dye_blue 4:lapis_lazuli
+M dye_brown 4:cocoa_beans
+M dye_cyan 4:cyan_dye
+M dye_gray 4:gray_dye
+M dye_green 4:cactus_green 4:green_dye
+M dye_light_blue 4:light_blue_dye
+M dye_lime 4:lime_dye
+M dye_magenta 4:magenta_dye
+M dye_orange 4:orange_dye
+M dye_pink 4:pink_dye
+M dye_purple 4:purple_dye
+M dye_red 4:rose_red 4:red_dye
+M dye_silver 4:light_gray_dye
+M dye_white 4:bone_meal
+M dye_yellow 4:dandelion_yellow 4:yellow_dye
+M end_bricks 4:end_stone_bricks
+M firework_charge 4:firework_star
+M fireworks 4:firework_rocket
+M golden_rail 4:powered_rail
+M granite_smooth 4:polished_granite
+M grass 4:grass_block
+M grass_path 7:dirt_path
+M gray_stained_hardened_clay 4:gray_terracotta
+M green_stained_hardened_clay 4:green_terracotta
+M hardened_clay 4:terracotta
+M houstonia 4:azure_bluet
+M light_blue_stained_hardened_clay 4:light_blue_terracotta
+M lime_stained_hardened_clay 4:lime_terracotta
+M lit_pumpkin 4:jack_o_lantern
+M magenta_stained_hardened_clay 4:magenta_terracotta
+M magma 4:magma_block
+M melon 4:melon_slice
+M melon_block 4:melon
+M mob_spawner 4:spawner
+M mossy_brick_monster_egg 4:infested_mossy_stone_bricks
+M mossy_stonebrick 4:mossy_stone_bricks
+M nether_brick 4:nether_bricks
+M netherbrick 4:nether_brick
+M noteblock 4:note_block
+M orange_stained_hardened_clay 4:orange_terracotta
+M paeonia 4:peony
+M pink_stained_hardened_clay 4:pink_terracotta
+M !pumpkin 4:carved_pumpkin
+M purple_stained_hardened_clay 4:purple_terracotta
+M quartz_column 4:quartz_pillar
+M quartz_ore 4:nether_quartz_ore
+M record_11 4:music_disc_11
+M record_13 4:music_disc_13
+M record_blocks 4:music_disc_blocks
+M record_cat 4:music_disc_cat
+M record_chirp 4:music_disc_chirp
+M record_far 4:music_disc_far
+M record_mall 4:music_disc_mall
+M record_mellohi 4:music_disc_mellohi
+M record_stal 4:music_disc_stal
+M record_strad 4:music_disc_strad
+M record_wait 4:music_disc_wait
+M record_ward 4:music_disc_ward
+M red_nether_brick 4:red_nether_bricks
+M red_stained_hardened_clay 4:red_terracotta
+M reeds 4:sugar_cane
+M sign 4:oak_sign
+M silver_carpet 4:light_gray_carpet
+M silver_concrete 4:light_gray_concrete
+M silver_concrete_powder 4:light_gray_concrete_powder
+M silver_glazed_terracotta 4:light_gray_glazed_terracotta
+M silver_shulker_box 4:light_gray_shulker_box
+M silver_stained_glass 4:light_gray_stained_glass
+M silver_stained_glass_pane 4:light_gray_stained_glass_pane
+M silver_stained_hardened_clay 4:light_gray_terracotta
+M silver_wool 4:light_gray_wool
+M skull 4:template_skull
+M skull_char 4:player_head
+M skull_creeper 4:creeper_head
+M skull_dragon 4:dragon_head
+M skull_skeleton 4:skeleton_skull
+M skull_wither 4:wither_skeleton_skull
+M skull_zombie 4:zombie_head
+M slime 4:slime_block
+M !smooth_red_sandstone 4:cut_red_sandstone
+M !smooth_sandstone 4:cut_sandstone
+M snow 4:snow_block
+M snow_layer 4:snow
+M spawn_egg 4:template_spawn_egg
+M speckled_melon 4:glistering_melon_slice
+M sponge_wet 4:wet_sponge
+M stone_brick_monster_egg 4:infested_stone_bricks
+M stone_monster_egg 4:infested_stone
+M !stone_slab 4:smooth_stone_slab
+M stone_stairs 4:cobblestone_stairs
+M stonebrick 4:stone_bricks
+M syringa 4:lilac
+M tall_grass 4:grass 22:short_grass
+M totem 4:totem_of_undying
+M trapdoor 4:oak_trapdoor
+M waterlily 4:lily_pad
+M web 4:cobweb
+M white_stained_hardened_clay 4:white_terracotta
+M wooden_button 4:oak_button
+M wooden_pressure_plate 4:oak_pressure_plate
+M yellow_stained_hardened_clay 4:yellow_terracotta
+
+I white_wool wool:0
+I white_carpet carpet:0
+I white_stained_glass stained_glass:0
+I white_stained_glass_pane stained_glass_pane:0
+I white_concrete concrete:0
+I white_concrete_powder concrete_powder:0
+I white_terracotta stained_hardened_clay:0
+I white_bed bed:0
+I white_banner banner:15
+I white_dye dye:15
+I orange_wool wool:1
+I orange_carpet carpet:1
+I orange_stained_glass stained_glass:1
+I orange_stained_glass_pane stained_glass_pane:1
+I orange_concrete concrete:1
+I orange_concrete_powder concrete_powder:1
+I orange_terracotta stained_hardened_clay:1
+I orange_bed bed:1
+I orange_banner banner:14
+I orange_dye dye:14
+I magenta_wool wool:2
+I magenta_carpet carpet:2
+I magenta_stained_glass stained_glass:2
+I magenta_stained_glass_pane stained_glass_pane:2
+I magenta_concrete concrete:2
+I magenta_concrete_powder concrete_powder:2
+I magenta_terracotta stained_hardened_clay:2
+I magenta_bed bed:2
+I magenta_banner banner:13
+I magenta_dye dye:13
+I light_blue_wool wool:3
+I light_blue_carpet carpet:3
+I light_blue_stained_glass stained_glass:3
+I light_blue_stained_glass_pane stained_glass_pane:3
+I light_blue_concrete concrete:3
+I light_blue_concrete_powder concrete_powder:3
+I light_blue_terracotta stained_hardened_clay:3
+I light_blue_bed bed:3
+I light_blue_banner banner:12
+I light_blue_dye dye:12
+I yellow_wool wool:4
+I yellow_carpet carpet:4
+I yellow_stained_glass stained_glass:4
+I yellow_stained_glass_pane stained_glass_pane:4
+I yellow_concrete concrete:4
+I yellow_concrete_powder concrete_powder:4
+I yellow_terracotta stained_hardened_clay:4
+I yellow_bed bed:4
+I yellow_banner banner:11
+I yellow_dye dye:11
+I lime_wool wool:5
+I lime_carpet carpet:5
+I lime_stained_glass stained_glass:5
+I lime_stained_glass_pane stained_glass_pane:5
+I lime_concrete concrete:5
+I lime_concrete_powder concrete_powder:5
+I lime_terracotta stained_hardened_clay:5
+I lime_bed bed:5
+I lime_banner banner:10
+I lime_dye dye:10
+I pink_wool wool:6
+I pink_carpet carpet:6
+I pink_stained_glass stained_glass:6
+I pink_stained_glass_pane stained_glass_pane:6
+I pink_concrete concrete:6
+I pink_concrete_powder concrete_powder:6
+I pink_terracotta stained_hardened_clay:6
+I pink_bed bed:6
+I pink_banner banner:9
+I pink_dye dye:9
+I gray_wool wool:7
+I gray_carpet carpet:7
+I gray_stained_glass stained_glass:7
+I gray_stained_glass_pane stained_glass_pane:7
+I gray_concrete concrete:7
+I gray_concrete_powder concrete_powder:7
+I gray_terracotta stained_hardened_clay:7
+I gray_bed bed:7
+I gray_banner banner:8
+I gray_dye dye:8
+I light_gray_wool wool:8
+I light_gray_carpet carpet:8
+I light_gray_stained_glass stained_glass:8
+I light_gray_stained_glass_pane stained_glass_pane:8
+I light_gray_concrete concrete:8
+I light_gray_concrete_powder concrete_powder:8
+I light_gray_terracotta stained_hardened_clay:8
+I light_gray_bed bed:8
+I light_gray_banner banner:7
+I light_gray_dye dye:7
+I cyan_wool wool:9
+I cyan_carpet carpet:9
+I cyan_stained_glass stained_glass:9
+I cyan_stained_glass_pane stained_glass_pane:9
+I cyan_concrete concrete:9
+I cyan_concrete_powder concrete_powder:9
+I cyan_terracotta stained_hardened_clay:9
+I cyan_bed bed:9
+I cyan_banner banner:6
+I cyan_dye dye:6
+I purple_wool wool:10
+I purple_carpet carpet:10
+I purple_stained_glass stained_glass:10
+I purple_stained_glass_pane stained_glass_pane:10
+I purple_concrete concrete:10
+I purple_concrete_powder concrete_powder:10
+I purple_terracotta stained_hardened_clay:10
+I purple_bed bed:10
+I purple_banner banner:5
+I purple_dye dye:5
+I blue_wool wool:11
+I blue_carpet carpet:11
+I blue_stained_glass stained_glass:11
+I blue_stained_glass_pane stained_glass_pane:11
+I blue_concrete concrete:11
+I blue_concrete_powder concrete_powder:11
+I blue_terracotta stained_hardened_clay:11
+I blue_bed bed:11
+I blue_banner banner:4
+I blue_dye dye:4
+I brown_wool wool:12
+I brown_carpet carpet:12
+I brown_stained_glass stained_glass:12
+I brown_stained_glass_pane stained_glass_pane:12
+I brown_concrete concrete:12
+I brown_concrete_powder concrete_powder:12
+I brown_terracotta stained_hardened_clay:12
+I brown_bed bed:12
+I brown_banner banner:3
+I brown_dye dye:3
+I green_wool wool:13
+I green_carpet carpet:13
+I green_stained_glass stained_glass:13
+I green_stained_glass_pane stained_glass_pane:13
+I green_concrete concrete:13
+I green_concrete_powder concrete_powder:13
+I green_terracotta stained_hardened_clay:13
+I green_bed bed:13
+I green_banner banner:2
+I green_dye dye:2
+I red_wool wool:14
+I red_carpet carpet:14
+I red_stained_glass stained_glass:14
+I red_stained_glass_pane stained_glass_pane:14
+I red_concrete concrete:14
+I red_concrete_powder concrete_powder:14
+I red_terracotta stained_hardened_clay:14
+I red_bed bed:14
+I red_banner banner:1
+I red_dye dye:1
+I black_wool wool:15
+I black_carpet carpet:15
+I black_stained_glass stained_glass:15
+I black_stained_glass_pane stained_glass_pane:15
+I black_concrete concrete:15
+I black_concrete_powder concrete_powder:15
+I black_terracotta stained_hardened_clay:15
+I black_bed bed:15
+I black_banner banner:0
+I black_dye dye:0
+I ink_sac dye:0
+I rose_red dye:1
+I cactus_green dye:2
+I cocoa_beans dye:3
+I lapis_lazuli dye:4
+I dandelion_yellow dye:11
+I bone_meal dye:15
+I light_gray_shulker_box silver_shulker_box
+I light_gray_glazed_terracotta silver_glazed_terracotta
+I oak_log log:0
+I oak_leaves leaves:0
+I oak_planks planks:0
+I oak_sapling sapling:0
+I oak_slab wooden_slab:0
+I spruce_log log:1
+I spruce_leaves leaves:1
+I spruce_planks planks:1
+I spruce_sapling sapling:1
+I spruce_slab wooden_slab:1
+I birch_log log:2
+I birch_leaves leaves:2
+I birch_planks planks:2
+I birch_sapling sapling:2
+I birch_slab wooden_slab:2
+I jungle_log log:3
+I jungle_leaves leaves:3
+I jungle_planks planks:3
+I jungle_sapling sapling:3
+I jungle_slab wooden_slab:3
+I acacia_log log2:0
+I acacia_leaves leaves2:0
+I acacia_planks planks:4
+I acacia_sapling sapling:4
+I acacia_slab wooden_slab:4
+I dark_oak_log log2:1
+I dark_oak_leaves leaves2:1
+I dark_oak_planks planks:5
+I dark_oak_sapling sapling:5
+I dark_oak_slab wooden_slab:5
+I oak_fence fence
+I oak_fence_gate fence_gate
+I oak_door wooden_door
+I oak_trapdoor trapdoor
+I oak_button wooden_button
+I oak_pressure_plate wooden_pressure_plate
+I oak_boat boat
+I oak_sign sign
+I grass_block grass
+I dirt_path grass_path
+I bricks brick_block
+I nether_bricks nether_brick
+I nether_brick netherbrick
+I red_nether_bricks red_nether_brick
+I end_stone_bricks end_bricks
+I terracotta hardened_clay
+I snow_block snow
+I snow snow_layer
+I magma_block magma
+I slime_block slime
+I nether_quartz_ore quartz_ore
+I spawner mob_spawner
+I note_block noteblock
+I cobweb web
+I powered_rail golden_rail
+I melon melon_block
+I melon_slice melon
+I glistering_melon_slice speckled_melon
+I carved_pumpkin pumpkin
+I jack_o_lantern lit_pumpkin
+I lily_pad waterlily
+I sugar_cane reeds
+I dead_bush deadbush
+I cobblestone_stairs stone_stairs
+I firework_rocket fireworks
+I firework_star firework_charge
+I popped_chorus_fruit chorus_fruit_popped
+I dandelion yellow_flower
+I music_disc_11 record_11
+I music_disc_13 record_13
+I music_disc_blocks record_blocks
+I music_disc_cat record_cat
+I music_disc_chirp record_chirp
+I music_disc_far record_far
+I music_disc_mall record_mall
+I music_disc_mellohi record_mellohi
+I music_disc_stal record_stal
+I music_disc_strad record_strad
+I music_disc_wait record_wait
+I music_disc_ward record_ward
+I stone stone:0
+I granite stone:1
+I polished_granite stone:2
+I diorite stone:3
+I polished_diorite stone:4
+I andesite stone:5
+I polished_andesite stone:6
+I dirt dirt:0
+I coarse_dirt dirt:1
+I podzol dirt:2
+I sand sand:0
+I red_sand sand:1
+I sandstone sandstone:0
+I chiseled_sandstone sandstone:1
+I cut_sandstone sandstone:2
+I red_sandstone red_sandstone:0
+I chiseled_red_sandstone red_sandstone:1
+I cut_red_sandstone red_sandstone:2
+I sponge sponge:0
+I wet_sponge sponge:1
+I prismarine prismarine:0
+I prismarine_bricks prismarine:1
+I dark_prismarine prismarine:2
+I quartz_block quartz_block:0
+I chiseled_quartz_block quartz_block:1
+I quartz_pillar quartz_block:2
+I stone_bricks stonebrick:0
+I mossy_stone_bricks stonebrick:1
+I cracked_stone_bricks stonebrick:2
+I chiseled_stone_bricks stonebrick:3
+I cobblestone_wall cobblestone_wall:0
+I mossy_cobblestone_wall cobblestone_wall:1
+I anvil anvil:0
+I chipped_anvil anvil:1
+I damaged_anvil anvil:2
+I golden_apple golden_apple:0
+I enchanted_golden_apple golden_apple:1
+I coal coal:0
+I charcoal coal:1
+I cod fish:0
+I salmon fish:1
+I tropical_fish fish:2
+I pufferfish fish:3
+I cooked_cod cooked_fish:0
+I cooked_salmon cooked_fish:1
+I skeleton_skull skull:0
+I wither_skeleton_skull skull:1
+I zombie_head skull:2
+I player_head skull:3
+I creeper_head skull:4
+I dragon_head skull:5
+I smooth_stone_slab stone_slab:0
+I sandstone_slab stone_slab:1
+I petrified_oak_slab stone_slab:2
+I cobblestone_slab stone_slab:3
+I brick_slab stone_slab:4
+I stone_brick_slab stone_slab:5
+I nether_brick_slab stone_slab:6
+I quartz_slab stone_slab:7
+I poppy red_flower:0
+I blue_orchid red_flower:1
+I allium red_flower:2
+I azure_bluet red_flower:3
+I red_tulip red_flower:4
+I orange_tulip red_flower:5
+I white_tulip red_flower:6
+I pink_tulip red_flower:7
+I oxeye_daisy red_flower:8
+I sunflower double_plant:0
+I lilac double_plant:1
+I tall_grass double_plant:2
+I large_fern double_plant:3
+I rose_bush double_plant:4
+I peony double_plant:5
+I infested_stone monster_egg:0
+I infested_cobblestone monster_egg:1
+I infested_stone_bricks monster_egg:2
+I infested_mossy_stone_bricks monster_egg:3
+I infested_cracked_stone_bricks monster_egg:4
+I infested_chiseled_stone_bricks monster_egg:5
+I stone_slab stone_slab:0
+I red_sandstone_slab stone_slab2:0
+I short_grass tallgrass:1
+I grass tallgrass:1
+I fern tallgrass:2
+
+B white_wool wool:color=white
+B white_carpet carpet:color=white
+B white_stained_glass stained_glass:color=white
+B white_stained_glass_pane stained_glass_pane:color=white
+B white_terracotta stained_hardened_clay:color=white
+B white_concrete concrete:color=white
+B white_concrete_powder concrete_powder:color=white
+B white_bed bed
+B white_banner standing_banner
+B white_wall_banner wall_banner
+B orange_wool wool:color=orange
+B orange_carpet carpet:color=orange
+B orange_stained_glass stained_glass:color=orange
+B orange_stained_glass_pane stained_glass_pane:color=orange
+B orange_terracotta stained_hardened_clay:color=orange
+B orange_concrete concrete:color=orange
+B orange_concrete_powder concrete_powder:color=orange
+B orange_bed bed
+B orange_banner standing_banner
+B orange_wall_banner wall_banner
+B magenta_wool wool:color=magenta
+B magenta_carpet carpet:color=magenta
+B magenta_stained_glass stained_glass:color=magenta
+B magenta_stained_glass_pane stained_glass_pane:color=magenta
+B magenta_terracotta stained_hardened_clay:color=magenta
+B magenta_concrete concrete:color=magenta
+B magenta_concrete_powder concrete_powder:color=magenta
+B magenta_bed bed
+B magenta_banner standing_banner
+B magenta_wall_banner wall_banner
+B light_blue_wool wool:color=light_blue
+B light_blue_carpet carpet:color=light_blue
+B light_blue_stained_glass stained_glass:color=light_blue
+B light_blue_stained_glass_pane stained_glass_pane:color=light_blue
+B light_blue_terracotta stained_hardened_clay:color=light_blue
+B light_blue_concrete concrete:color=light_blue
+B light_blue_concrete_powder concrete_powder:color=light_blue
+B light_blue_bed bed
+B light_blue_banner standing_banner
+B light_blue_wall_banner wall_banner
+B yellow_wool wool:color=yellow
+B yellow_carpet carpet:color=yellow
+B yellow_stained_glass stained_glass:color=yellow
+B yellow_stained_glass_pane stained_glass_pane:color=yellow
+B yellow_terracotta stained_hardened_clay:color=yellow
+B yellow_concrete concrete:color=yellow
+B yellow_concrete_powder concrete_powder:color=yellow
+B yellow_bed bed
+B yellow_banner standing_banner
+B yellow_wall_banner wall_banner
+B lime_wool wool:color=lime
+B lime_carpet carpet:color=lime
+B lime_stained_glass stained_glass:color=lime
+B lime_stained_glass_pane stained_glass_pane:color=lime
+B lime_terracotta stained_hardened_clay:color=lime
+B lime_concrete concrete:color=lime
+B lime_concrete_powder concrete_powder:color=lime
+B lime_bed bed
+B lime_banner standing_banner
+B lime_wall_banner wall_banner
+B pink_wool wool:color=pink
+B pink_carpet carpet:color=pink
+B pink_stained_glass stained_glass:color=pink
+B pink_stained_glass_pane stained_glass_pane:color=pink
+B pink_terracotta stained_hardened_clay:color=pink
+B pink_concrete concrete:color=pink
+B pink_concrete_powder concrete_powder:color=pink
+B pink_bed bed
+B pink_banner standing_banner
+B pink_wall_banner wall_banner
+B gray_wool wool:color=gray
+B gray_carpet carpet:color=gray
+B gray_stained_glass stained_glass:color=gray
+B gray_stained_glass_pane stained_glass_pane:color=gray
+B gray_terracotta stained_hardened_clay:color=gray
+B gray_concrete concrete:color=gray
+B gray_concrete_powder concrete_powder:color=gray
+B gray_bed bed
+B gray_banner standing_banner
+B gray_wall_banner wall_banner
+B light_gray_wool wool:color=silver
+B light_gray_carpet carpet:color=silver
+B light_gray_stained_glass stained_glass:color=silver
+B light_gray_stained_glass_pane stained_glass_pane:color=silver
+B light_gray_terracotta stained_hardened_clay:color=silver
+B light_gray_concrete concrete:color=silver
+B light_gray_concrete_powder concrete_powder:color=silver
+B light_gray_bed bed
+B light_gray_banner standing_banner
+B light_gray_wall_banner wall_banner
+B cyan_wool wool:color=cyan
+B cyan_carpet carpet:color=cyan
+B cyan_stained_glass stained_glass:color=cyan
+B cyan_stained_glass_pane stained_glass_pane:color=cyan
+B cyan_terracotta stained_hardened_clay:color=cyan
+B cyan_concrete concrete:color=cyan
+B cyan_concrete_powder concrete_powder:color=cyan
+B cyan_bed bed
+B cyan_banner standing_banner
+B cyan_wall_banner wall_banner
+B purple_wool wool:color=purple
+B purple_carpet carpet:color=purple
+B purple_stained_glass stained_glass:color=purple
+B purple_stained_glass_pane stained_glass_pane:color=purple
+B purple_terracotta stained_hardened_clay:color=purple
+B purple_concrete concrete:color=purple
+B purple_concrete_powder concrete_powder:color=purple
+B purple_bed bed
+B purple_banner standing_banner
+B purple_wall_banner wall_banner
+B blue_wool wool:color=blue
+B blue_carpet carpet:color=blue
+B blue_stained_glass stained_glass:color=blue
+B blue_stained_glass_pane stained_glass_pane:color=blue
+B blue_terracotta stained_hardened_clay:color=blue
+B blue_concrete concrete:color=blue
+B blue_concrete_powder concrete_powder:color=blue
+B blue_bed bed
+B blue_banner standing_banner
+B blue_wall_banner wall_banner
+B brown_wool wool:color=brown
+B brown_carpet carpet:color=brown
+B brown_stained_glass stained_glass:color=brown
+B brown_stained_glass_pane stained_glass_pane:color=brown
+B brown_terracotta stained_hardened_clay:color=brown
+B brown_concrete concrete:color=brown
+B brown_concrete_powder concrete_powder:color=brown
+B brown_bed bed
+B brown_banner standing_banner
+B brown_wall_banner wall_banner
+B green_wool wool:color=green
+B green_carpet carpet:color=green
+B green_stained_glass stained_glass:color=green
+B green_stained_glass_pane stained_glass_pane:color=green
+B green_terracotta stained_hardened_clay:color=green
+B green_concrete concrete:color=green
+B green_concrete_powder concrete_powder:color=green
+B green_bed bed
+B green_banner standing_banner
+B green_wall_banner wall_banner
+B red_wool wool:color=red
+B red_carpet carpet:color=red
+B red_stained_glass stained_glass:color=red
+B red_stained_glass_pane stained_glass_pane:color=red
+B red_terracotta stained_hardened_clay:color=red
+B red_concrete concrete:color=red
+B red_concrete_powder concrete_powder:color=red
+B red_bed bed
+B red_banner standing_banner
+B red_wall_banner wall_banner
+B black_wool wool:color=black
+B black_carpet carpet:color=black
+B black_stained_glass stained_glass:color=black
+B black_stained_glass_pane stained_glass_pane:color=black
+B black_terracotta stained_hardened_clay:color=black
+B black_concrete concrete:color=black
+B black_concrete_powder concrete_powder:color=black
+B black_bed bed
+B black_banner standing_banner
+B black_wall_banner wall_banner
+B light_gray_shulker_box silver_shulker_box
+B light_gray_glazed_terracotta silver_glazed_terracotta
+B oak_planks planks:variant=oak
+B oak_log log:variant=oak:axis=x log:variant=oak:axis=y log:variant=oak:axis=z
+B oak_wood log:variant=oak:axis=none
+B oak_leaves leaves:variant=oak
+B oak_sapling sapling:type=oak
+B oak_slab wooden_slab:variant=oak
+B spruce_planks planks:variant=spruce
+B spruce_log log:variant=spruce:axis=x log:variant=spruce:axis=y log:variant=spruce:axis=z
+B spruce_wood log:variant=spruce:axis=none
+B spruce_leaves leaves:variant=spruce
+B spruce_sapling sapling:type=spruce
+B spruce_slab wooden_slab:variant=spruce
+B birch_planks planks:variant=birch
+B birch_log log:variant=birch:axis=x log:variant=birch:axis=y log:variant=birch:axis=z
+B birch_wood log:variant=birch:axis=none
+B birch_leaves leaves:variant=birch
+B birch_sapling sapling:type=birch
+B birch_slab wooden_slab:variant=birch
+B jungle_planks planks:variant=jungle
+B jungle_log log:variant=jungle:axis=x log:variant=jungle:axis=y log:variant=jungle:axis=z
+B jungle_wood log:variant=jungle:axis=none
+B jungle_leaves leaves:variant=jungle
+B jungle_sapling sapling:type=jungle
+B jungle_slab wooden_slab:variant=jungle
+B acacia_planks planks:variant=acacia
+B acacia_log log2:variant=acacia:axis=x log2:variant=acacia:axis=y log2:variant=acacia:axis=z
+B acacia_wood log2:variant=acacia:axis=none
+B acacia_leaves leaves2:variant=acacia
+B acacia_sapling sapling:type=acacia
+B acacia_slab wooden_slab:variant=acacia
+B dark_oak_planks planks:variant=dark_oak
+B dark_oak_log log2:variant=dark_oak:axis=x log2:variant=dark_oak:axis=y log2:variant=dark_oak:axis=z
+B dark_oak_wood log2:variant=dark_oak:axis=none
+B dark_oak_leaves leaves2:variant=dark_oak
+B dark_oak_sapling sapling:type=dark_oak
+B dark_oak_slab wooden_slab:variant=dark_oak
+B oak_fence fence
+B oak_fence_gate fence_gate
+B oak_door wooden_door
+B oak_trapdoor trapdoor
+B oak_button wooden_button
+B oak_pressure_plate wooden_pressure_plate
+B oak_sign standing_sign
+B oak_wall_sign wall_sign
+B stone stone:variant=stone
+B granite stone:variant=granite
+B polished_granite stone:variant=smooth_granite
+B diorite stone:variant=diorite
+B polished_diorite stone:variant=smooth_diorite
+B andesite stone:variant=andesite
+B polished_andesite stone:variant=smooth_andesite
+B dirt dirt:variant=dirt
+B coarse_dirt dirt:variant=coarse_dirt
+B podzol dirt:variant=podzol
+B grass_block grass
+B dirt_path grass_path
+B sand sand:variant=sand
+B red_sand sand:variant=red_sand
+B sandstone sandstone:type=sandstone
+B chiseled_sandstone sandstone:type=chiseled_sandstone
+B cut_sandstone sandstone:type=smooth_sandstone
+B red_sandstone red_sandstone:type=red_sandstone
+B chiseled_red_sandstone red_sandstone:type=chiseled_red_sandstone
+B cut_red_sandstone red_sandstone:type=smooth_red_sandstone
+B stone_bricks stonebrick:variant=stonebrick
+B mossy_stone_bricks stonebrick:variant=mossy_stonebrick
+B cracked_stone_bricks stonebrick:variant=cracked_stonebrick
+B chiseled_stone_bricks stonebrick:variant=chiseled_stonebrick
+B prismarine prismarine:variant=prismarine
+B prismarine_bricks prismarine:variant=prismarine_bricks
+B dark_prismarine prismarine:variant=dark_prismarine
+B quartz_block quartz_block:variant=default
+B chiseled_quartz_block quartz_block:variant=chiseled
+B sponge sponge:wet=false
+B wet_sponge sponge:wet=true
+B cobblestone_wall cobblestone_wall:variant=cobblestone
+B mossy_cobblestone_wall cobblestone_wall:variant=mossy_cobblestone
+B smooth_stone_slab stone_slab:variant=stone
+B sandstone_slab stone_slab:variant=sandstone
+B cobblestone_slab stone_slab:variant=cobblestone
+B brick_slab stone_slab:variant=brick
+B stone_brick_slab stone_slab:variant=stone_brick
+B nether_brick_slab stone_slab:variant=nether_brick
+B quartz_slab stone_slab:variant=quartz
+B red_sandstone_slab stone_slab2
+B cobblestone_stairs stone_stairs
+B bricks brick_block
+B nether_bricks nether_brick
+B red_nether_bricks red_nether_brick
+B end_stone_bricks end_bricks
+B terracotta hardened_clay
+B snow_block snow
+B snow snow_layer
+B magma_block magma
+B slime_block slime
+B nether_quartz_ore quartz_ore
+B spawner mob_spawner
+B note_block noteblock
+B cobweb web
+B powered_rail golden_rail
+B melon melon_block
+B carved_pumpkin pumpkin
+B jack_o_lantern lit_pumpkin
+B nether_portal portal
+B wall_torch torch
+B dandelion yellow_flower
+B poppy red_flower:type=poppy
+B blue_orchid red_flower:type=blue_orchid
+B allium red_flower:type=allium
+B azure_bluet red_flower:type=houstonia
+B red_tulip red_flower:type=red_tulip
+B orange_tulip red_flower:type=orange_tulip
+B white_tulip red_flower:type=white_tulip
+B pink_tulip red_flower:type=pink_tulip
+B oxeye_daisy red_flower:type=oxeye_daisy
+B short_grass tallgrass:type=tall_grass
+B fern tallgrass:type=fern
+B lily_pad waterlily
+B sugar_cane reeds
+B sunflower double_plant:variant=sunflower
+B lilac double_plant:variant=syringa
+B tall_grass double_plant:variant=double_grass
+B large_fern double_plant:variant=double_fern
+B rose_bush double_plant:variant=double_rose
+B peony double_plant:variant=paeonia
+B quartz_pillar quartz_block:variant=lines_x quartz_block:variant=lines_y quartz_block:variant=lines_z
+B water water flowing_water
+B lava lava flowing_lava
+B dead_bush deadbush tallgrass:type=dead_bush
+
+E cave_spider cave_spider spider
+E chest_minecart chest_minecart minecart
+E commandblock_minecart command_block_minecart minecart
+E donkey donkey horse
+E elder_guardian elder_guardian guardian_elder guardian
+E ender_crystal end_crystal ender_crystal
+E ender_dragon dragon ender_dragon
+E evocation_fangs evoker_fangs evocation_fangs
+E evocation_illager evoker evocation_illager
+E furnace_minecart furnace_minecart minecart
+E giant giant zombie
+E hopper_minecart hopper_minecart minecart
+E husk husk zombie
+E illusion_illager illusioner illusion_illager
+E leash_knot lead_knot leash_knot
+E mooshroom mooshroom cow
+E mule mule donkey horse
+E ocelot ocelot cat
+E skeleton_horse skeleton_horse horse
+E snowman snow_golem snowman
+E spawner_minecart spawner_minecart minecart
+E stray stray skeleton
+E tnt_minecart tnt_minecart minecart
+E villager_golem iron_golem villager_golem
+E vindication_illager vindicator vindication_illager
+E wither_skeleton wither_skeleton skeleton
+E zombie_horse zombie_horse horse
+E zombie_pigman zombified_piglin zombie_pigman zombie
+
+P ModelArmorStand standBase|field_178737_d base
+P ModelArmorStand standLeftSide|field_178738_b left
+P ModelArmorStand standRightSide|field_178740_a right
+P ModelArmorStand standWaist|field_178739_c waist
+P ModelBanner bannerSlate|field_178690_a slate
+P ModelBanner bannerStand|field_178688_b stand
+P ModelBanner bannerTop|field_178689_c top
+P ModelBat batBody|field_82893_b body
+P ModelBat batHead|field_82895_a head
+P ModelBat batLeftWing|field_82891_d left_wing
+P ModelBat batOuterLeftWing|field_82890_f outer_left_wing
+P ModelBat batOuterRightWing|field_82892_e outer_right_wing
+P ModelBat batRightWing|field_82894_c right_wing
+P ModelBed footPiece|field_193773_b foot
+P ModelBed headPiece|field_193772_a head
+P ModelBed legs|field_193774_c[] leg
+P ModelBiped bipedBody|field_78115_e body
+P ModelBiped bipedHeadwear|field_178720_f headwear
+P ModelBiped bipedHead|field_78116_c head
+P ModelBiped bipedLeftArm|field_178724_i left_arm
+P ModelBiped bipedLeftLeg|field_178722_k left_leg
+P ModelBiped bipedRightArm|field_178723_h right_arm
+P ModelBiped bipedRightLeg|field_178721_j right_leg
+P ModelBlaze blazeHead|field_78105_b head
+P ModelBlaze blazeSticks|field_78106_a[] stick
+P ModelBoat boatSides|field_78103_a[0] bottom
+P ModelBoat boatSides|field_78103_a[1] back
+P ModelBoat boatSides|field_78103_a[2] front
+P ModelBoat boatSides|field_78103_a[3] right
+P ModelBoat boatSides|field_78103_a[4] left
+P ModelBoat noWater|field_187058_c bottom_no_water
+P ModelBoat paddles|field_187057_b[0] paddle_left
+P ModelBoat paddles|field_187057_b[1] paddle_right
+P ModelBook bookSpine|field_78097_g book_spine
+P ModelBook coverLeft|field_78100_b cover_left
+P ModelBook coverRight|field_78102_a cover_right
+P ModelBook flippingPageLeft|field_78096_f flipping_page_left
+P ModelBook flippingPageRight|field_78099_e flipping_page_right
+P ModelBook pagesLeft|field_78098_d pages_left
+P ModelBook pagesRight|field_78101_c pages_right
+P ModelChest chestBelow|field_78232_b base
+P ModelChest chestKnob|field_78233_c knob
+P ModelChest chestLid|field_78234_a lid
+P ModelChicken bill|field_78137_g bill
+P ModelChicken body|field_78140_b body
+P ModelChicken chin|field_78143_h chin
+P ModelChicken head|field_78142_a head
+P ModelChicken leftLeg|field_78138_d left_leg
+P ModelChicken leftWing|field_78136_f left_wing
+P ModelChicken rightLeg|field_78141_c right_leg
+P ModelChicken rightWing|field_78139_e right_wing
+P ModelCreeper body|field_78134_c body
+P ModelCreeper creeperArmor|field_78133_b armor
+P ModelCreeper head|field_78135_a head
+P ModelCreeper leg1|field_78131_d leg1 right_hind_leg
+P ModelCreeper leg2|field_78132_e left_hind_leg leg2
+P ModelCreeper leg3|field_78129_f leg3 right_front_leg
+P ModelCreeper leg4|field_78130_g left_front_leg leg4
+P ModelDragon body|field_78217_d body
+P ModelDragon frontFoot|field_78224_j front_foot
+P ModelDragon frontLegTip|field_78226_h front_leg_tip
+P ModelDragon frontLeg|field_78215_f front_leg
+P ModelDragon head|field_78221_a head
+P ModelDragon jaw|field_78220_c jaw
+P ModelDragon rearFoot|field_78227_i rear_foot
+P ModelDragon rearLegTip|field_78216_g rear_leg_tip
+P ModelDragon rearLeg|field_78218_e rear_leg
+P ModelDragon spine|field_78219_b spine
+P ModelDragon wingTip|field_78222_l wing_tip
+P ModelDragon wing|field_78225_k wing
+P ModelDragonHead head|field_187070_a head
+P ModelDragonHead jaw|field_187071_b jaw
+P ModelElytra leftWing|field_187061_b left_wing
+P ModelElytra rightWing|field_187060_a right_wing
+P ModelEnderCrystal cube|field_78230_a cube
+P ModelEnderCrystal glass|field_78228_b glass outer_glass
+P ModelEvokerFangs base|field_191213_a base
+P ModelEvokerFangs lowerJaw|field_191215_c lower_jaw
+P ModelEvokerFangs upperJaw|field_191214_b upper_jaw
+P ModelGhast body|field_78128_a body
+P ModelGhast tentacles|field_78127_b[] tentacle
+P ModelGuardian guardianBody|field_178710_a body
+P ModelGuardian guardianEye|field_178708_b eye
+P ModelGuardian guardianSpines|field_178709_c[] spine
+P ModelGuardian guardianTail|field_178707_d[] tail
+P ModelHorse backLeftHoof|field_110718_w back_left_hoof
+P ModelHorse backLeftLeg|field_110711_o back_left_leg
+P ModelHorse backLeftShin|field_110719_v back_left_shin
+P ModelHorse backRightHoof|field_110720_z back_right_hoof
+P ModelHorse backRightLeg|field_110722_x back_right_leg
+P ModelHorse backRightShin|field_110721_y back_right_shin
+P ModelHorse body|field_110715_k body
+P ModelHorse frontLeftHoof|field_110690_C front_left_hoof
+P ModelHorse frontLeftLeg|field_110688_A front_left_leg
+P ModelHorse frontLeftShin|field_110689_B front_left_shin
+P ModelHorse frontRightHoof|field_110686_F front_right_hoof
+P ModelHorse frontRightLeg|field_110684_D front_right_leg
+P ModelHorse frontRightShin|field_110685_E front_right_shin
+P ModelHorse head|field_110709_a head
+P ModelHorse horseFaceRopes|field_110717_i headpiece
+P ModelHorse horseLeftEar|field_110705_d left_ear
+P ModelHorse horseLeftFaceMetal|field_110700_P left_face_metal
+P ModelHorse horseLeftRein|field_110702_R horse_left_rein
+P ModelHorse horseLeftSaddleMetal|field_110692_M left_bit
+P ModelHorse horseLeftSaddleRope|field_110691_L left_rein
+P ModelHorse horseRightEar|field_110706_e right_ear
+P ModelHorse horseRightFaceMetal|field_110699_Q right_face_metal
+P ModelHorse horseRightRein|field_110701_S horse_right_rein
+P ModelHorse horseRightSaddleMetal|field_110694_O right_bit
+P ModelHorse horseRightSaddleRope|field_110693_N right_rein
+P ModelHorse horseSaddleBack|field_110698_K saddle_back
+P ModelHorse horseSaddleBottom|field_110696_I saddle
+P ModelHorse horseSaddleFront|field_110697_J noseband
+P ModelHorse lowerMouth|field_178712_c lower_mouth
+P ModelHorse mane|field_110714_j mane
+P ModelHorse muleLeftChest|field_110687_G left_chest
+P ModelHorse muleLeftEar|field_110703_f mule_left_ear
+P ModelHorse muleRightChest|field_110695_H right_chest
+P ModelHorse muleRightEar|field_110704_g mule_right_ear
+P ModelHorse neck|field_110716_h neck
+P ModelHorse tailBase|field_110712_l tail
+P ModelHorse tailMiddle|field_110713_m tail_middle
+P ModelHorse tailTip|field_110710_n tail_tip
+P ModelHorse upperMouth|field_178711_b mouth
+P ModelIllager arms|field_191219_c arms
+P ModelIllager body|field_191218_b body
+P ModelIllager hat|field_193775_b hat
+P ModelIllager head|field_191217_a head
+P ModelIllager leftArm|field_191224_h left_arm
+P ModelIllager leg0|field_191220_d right_leg
+P ModelIllager leg1|field_191221_e left_leg
+P ModelIllager nose|field_191222_f nose
+P ModelIllager rightArm|field_191223_g right_arm
+P ModelIronGolem ironGolemBody|field_78176_b body
+P ModelIronGolem ironGolemHead|field_78178_a head
+P ModelIronGolem ironGolemLeftArm|field_78174_d left_arm
+P ModelIronGolem ironGolemLeftLeg|field_78175_e left_leg
+P ModelIronGolem ironGolemRightArm|field_78177_c right_arm
+P ModelIronGolem ironGolemRightLeg|field_78173_f right_leg
+P ModelLeashKnot knotRenderer|field_110723_a knot
+P ModelLlama chest1|field_191226_i chest1
+P ModelLlama chest2|field_191227_j chest2
+P ModelLlamaSpit main|field_191225_a body
+P ModelMagmaCube core|field_78108_b core
+P ModelMagmaCube segments|field_78109_a[] segment
+P ModelMinecart sideModels|field_78154_a[0] bottom
+P ModelMinecart sideModels|field_78154_a[1] back
+P ModelMinecart sideModels|field_78154_a[2] front
+P ModelMinecart sideModels|field_78154_a[3] left
+P ModelMinecart sideModels|field_78154_a[4] right
+P ModelMinecart sideModels|field_78154_a[5] dirt
+P ModelOcelot ocelotBackLeftLeg|field_78161_a back_left_leg
+P ModelOcelot ocelotBackRightLeg|field_78159_b back_right_leg
+P ModelOcelot ocelotBody|field_78162_h body
+P ModelOcelot ocelotFrontLeftLeg|field_78160_c front_left_leg
+P ModelOcelot ocelotFrontRightLeg|field_78157_d front_right_leg
+P ModelOcelot ocelotHead|field_78156_g head
+P ModelOcelot ocelotTail2|field_78155_f tail2
+P ModelOcelot ocelotTail|field_78158_e tail tail1
+P ModelParrot beak1|field_192770_g beak1
+P ModelParrot beak2|field_192771_h beak2
+P ModelParrot body|field_192764_a body
+P ModelParrot feather|field_192772_i feather
+P ModelParrot head2|field_192769_f head2
+P ModelParrot head|field_192768_e head
+P ModelParrot legLeft|field_192773_j leg_left
+P ModelParrot legRight|field_192774_k leg_right
+P ModelParrot tail|field_192765_b tail
+P ModelParrot wingLeft|field_192766_c left_wing
+P ModelParrot wingRight|field_192767_d right_wing
+P ModelPlayer bipedBodyWear|field_178730_v jacket
+P ModelPlayer bipedCape|field_178729_w cape cloak
+P ModelPlayer bipedDeadmau5Head|field_178736_x ear
+P ModelPlayer bipedLeftArmwear|field_178734_a left_sleeve
+P ModelPlayer bipedLeftLegwear|field_178733_c left_pants
+P ModelPlayer bipedRightArmwear|field_178732_b right_sleeve
+P ModelPlayer bipedRightLegwear|field_178731_d right_pants
+P ModelQuadruped body|field_78148_b body
+P ModelQuadruped head|field_78150_a head
+P ModelQuadruped leg1|field_78149_c leg1 right_hind_leg
+P ModelQuadruped leg2|field_78146_d left_hind_leg leg2
+P ModelQuadruped leg3|field_78147_e leg3 right_front_leg
+P ModelQuadruped leg4|field_78144_f left_front_leg leg4
+P ModelRabbit rabbitBody|field_178695_e body
+P ModelRabbit rabbitHead|field_178704_h head
+P ModelRabbit rabbitLeftArm|field_178692_f left_arm left_front_leg
+P ModelRabbit rabbitLeftEar|field_178702_j left_ear
+P ModelRabbit rabbitLeftFoot|field_178698_a left_foot left_hind_foot
+P ModelRabbit rabbitLeftThigh|field_178697_c left_haunch left_thigh
+P ModelRabbit rabbitNose|field_178700_l nose
+P ModelRabbit rabbitRightArm|field_178693_g right_arm right_front_leg
+P ModelRabbit rabbitRightEar|field_178705_i right_ear
+P ModelRabbit rabbitRightFoot|field_178696_b right_foot right_hind_foot
+P ModelRabbit rabbitRightThigh|field_178694_d right_haunch right_thigh
+P ModelRabbit rabbitTail|field_178703_k tail
+P ModelShield handle|field_187064_b handle
+P ModelShield plate|field_187063_a plate
+P ModelShulker base|field_187067_b base
+P ModelShulker head|field_187066_a head
+P ModelShulker lid|field_187068_c lid
+P ModelShulkerBullet renderer|field_187069_a bullet
+P ModelSign signBoard|field_78166_a board
+P ModelSign signStick|field_78165_b stick
+P ModelSkeletonHead skeletonHead|field_82896_a head
+P ModelSlime slimeBodies|field_78200_a body
+P ModelSlime slimeLeftEye|field_78199_c left_eye
+P ModelSlime slimeMouth|field_78197_d mouth
+P ModelSlime slimeRightEye|field_78198_b right_eye
+P ModelSnowMan body|field_78196_a body
+P ModelSnowMan bottomBody|field_78194_b body_bottom
+P ModelSnowMan head|field_78195_c head
+P ModelSnowMan leftHand|field_78193_e left_hand
+P ModelSnowMan rightHand|field_78192_d right_hand
+P ModelSpider spiderBody|field_78208_c body
+P ModelSpider spiderHead|field_78209_a head
+P ModelSpider spiderLeg1|field_78205_d leg1
+P ModelSpider spiderLeg2|field_78206_e leg2
+P ModelSpider spiderLeg3|field_78203_f leg3
+P ModelSpider spiderLeg4|field_78204_g leg4
+P ModelSpider spiderLeg5|field_78212_h leg5
+P ModelSpider spiderLeg6|field_78213_i leg6
+P ModelSpider spiderLeg7|field_78210_j leg7
+P ModelSpider spiderLeg8|field_78211_k leg8
+P ModelSpider spiderNeck|field_78207_b neck
+P ModelSquid squidBody|field_78202_a body
+P ModelSquid squidTentacles|field_78201_b[] tentacle
+P ModelVex leftWing|field_191229_a left_wing
+P ModelVex rightWing|field_191230_b right_wing
+P ModelVillager leftVillagerLeg|field_78188_e left_leg
+P ModelVillager rightVillagerLeg|field_78187_d right_leg
+P ModelVillager villagerArms|field_78190_c arms
+P ModelVillager villagerBody|field_78189_b body
+P ModelVillager villagerHead|field_78191_a head
+P ModelVillager villagerNose|field_82898_f nose
+P ModelWitch mole|field_82901_h mole
+P ModelWitch witchHat|field_82902_i hat
+P ModelWither heads|field_82904_b[] head
+P ModelWither upperBodyParts|field_82905_a[] body
+P ModelWolf wolfBody|field_78183_b body
+P ModelWolf wolfHeadMain|field_78185_a head
+P ModelWolf wolfLeg1|field_78184_c leg1
+P ModelWolf wolfLeg2|field_78181_d leg2
+P ModelWolf wolfLeg3|field_78182_e leg3
+P ModelWolf wolfLeg4|field_78179_f leg4
+P ModelWolf wolfMane|field_78186_h mane
+P ModelWolf wolfTail|field_78180_g tail
+P * heads[] head
+P * leg1 right_hind_leg
+P * leg2 left_hind_leg
+P * leg3 right_front_leg
+P * leg4 left_front_leg
+P * segments[] segment
+P * spikeParts[] spike
+P * tailParts[] tail
+P * tentacles[] tentacle
+P * upperBodyParts[] body
+P * wingLeft left_wing
+P * wingRight right_wing
+
+H bodywear body
+H hat head
+H hat_rim head
+H headwear head
+H headwear2 head
+H jacket body
+H left_pants left_leg
+H left_sleeve left_arm
+H player_face head
+H right_pants right_leg
+H right_sleeve right_arm
+
+A jacket body player player_slim
+A left_pants left_leg player player_slim
+A left_sleeve left_arm player player_slim
+A right_pants right_leg player player_slim
+A right_sleeve right_arm player player_slim
+A saddle body horse donkey mule zombie_horse skeleton_horse horse_armor
+
+R left_arm body vex
+R right_arm body vex

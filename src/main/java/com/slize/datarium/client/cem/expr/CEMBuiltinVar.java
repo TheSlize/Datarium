@@ -1,0 +1,35 @@
+package com.slize.datarium.client.cem.expr;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+
+/** Built-in variables: every name that is not "var."/"varb." or "part.property". */
+public enum CEMBuiltinVar {
+    HEAD_YAW, HEAD_PITCH, LIMB_SWING, LIMB_SPEED, AGE, FRAME_TIME, FRAME_COUNTER,
+    IS_CHILD, IS_RIDING, IS_RIDDEN, IS_SNEAKING, IS_SPRINTING, IS_WET, IS_IN_WATER, IS_IN_LAVA,
+    IS_ON_GROUND, IS_ALIVE, IS_BURNING, IS_INVISIBLE, IS_GLOWING, IS_HURT, IS_AGGRESSIVE, IS_SITTING,
+    HURT_TIME, DEATH_TIME, HEALTH, MAX_HEALTH,
+    POS_X, POS_Y, POS_Z, PLAYER_POS_X, PLAYER_POS_Y, PLAYER_POS_Z,
+    ROT_X, ROT_Y, MOVE_FORWARD, MOVE_STRAFING, DIMENSION, ID, SWING_PROGRESS,
+    IS_CLIMBING, IS_GLIDING, IS_USING_ITEM, IS_BLOCKING, IS_JUMPING, IS_RIGHT_HANDED,
+    IS_SWINGING_RIGHT_ARM, IS_SWINGING_LEFT_ARM, IS_HOLDING_ITEM_RIGHT, IS_HOLDING_ITEM_LEFT,
+    IS_FLYING, IS_CRAWLING, IS_SWIMMING, TIME, IS_PAUSED, IS_IN_GUI, IS_FIRST_PERSON_HAND, FLUID_DEPTH_UP,
+    DAY_TIME, DAY_COUNT, PLAYER_ROT_X, PLAYER_ROT_Y, RULE_INDEX, ANGER_TIME, ANGER_TIME_START,
+    DISTANCE, HEIGHT_ABOVE_GROUND, FLUID_DEPTH, FLUID_DEPTH_DOWN, IS_TAMED, IS_IN_HAND, IS_IN_ITEM_FRAME,
+    IS_IN_GROUND, IS_ON_HEAD, IS_ON_SHOULDER, IS_HOVERED, IS_PLAYER_FIRST_PERSON, IS_PLAYER_THIRD_PERSON,
+    IS_PLAYER_THIRD_PERSON_REVERSED;
+
+    private static final Map<String, CEMBuiltinVar> BY_NAME = new HashMap<>();
+
+    static {
+        for (CEMBuiltinVar v : values()) BY_NAME.put(v.name().toLowerCase(Locale.ROOT), v);
+    }
+
+    @Nullable
+    static CEMBuiltinVar byName(String name) {
+        return BY_NAME.get(name);
+    }
+}

@@ -10,7 +10,12 @@ public class CEMRenderState {
     public final CEMRenderContext context;
     public final Map<String, CEMPartTransform> transforms;
     public final Map<String, OriginalPartState> originalStates;
+    public final Map<String, Map<String, CEMPartTransform>> secondaryTransforms = new HashMap<>();
     public long lastUpdateTime;
+    public long lastRenderFrame = Long.MIN_VALUE;
+
+    /** Set once per frame by MixinRenderLivingBase, read by the main and layer-model passes. See CEMThrottle. */
+    public boolean animateThisFrame = true;
 
     public CEMRenderState() {
         this.context = new CEMRenderContext();
@@ -33,7 +38,6 @@ public class CEMRenderState {
         state.rotationPointX = renderer.rotationPointX;
         state.rotationPointY = renderer.rotationPointY;
         state.rotationPointZ = renderer.rotationPointZ;
-        state.showModel = renderer.showModel;
     }
 
     public static class OriginalPartState {

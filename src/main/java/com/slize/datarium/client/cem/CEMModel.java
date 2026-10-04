@@ -1,5 +1,8 @@
 package com.slize.datarium.client.cem;
 
+import net.minecraft.util.ResourceLocation;
+
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +14,8 @@ public class CEMModel {
     public Map<String, CEMModelPart> partById;
     public List<CEMAnimation> animations;
     public String credit;
+    @Nullable public ResourceLocation texture;
+    public boolean customCape;
 
     public CEMModel() {
         this.textureSize = new int[]{64, 64};

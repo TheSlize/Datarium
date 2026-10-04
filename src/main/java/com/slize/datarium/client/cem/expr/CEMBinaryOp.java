@@ -1,11 +1,18 @@
 package com.slize.datarium.client.cem.expr;
 
 public record CEMBinaryOp(Op op, CEMExpression left, CEMExpression right) implements CEMExpression {
+    static CEMExpression of(Op op, CEMExpression left, CEMExpression right) {
+        CEMBinaryOp node = new CEMBinaryOp(op, left, right);
+        return left instanceof CEMLiteral && right instanceof CEMLiteral ? new CEMLiteral(node.evaluate(null)) : node;
+    }
+
     @Override
     public double evaluate(CEMRenderContext ctx) {
+        if (op == Op.AND) return left.evaluate(ctx) != 0 && right.evaluate(ctx) != 0 ? 1 : 0;
+        if (op == Op.OR) return left.evaluate(ctx) != 0 || right.evaluate(ctx) != 0 ? 1 : 0;
+
         double l = left.evaluate(ctx);
         double r = right.evaluate(ctx);
-
         return switch (op) {
             case ADD -> l + r;
             case SUB -> l - r;
@@ -18,8 +25,7 @@ public record CEMBinaryOp(Op op, CEMExpression left, CEMExpression right) implem
             case GT -> l > r ? 1 : 0;
             case LTE -> l <= r ? 1 : 0;
             case GTE -> l >= r ? 1 : 0;
-            case AND -> (l != 0 && r != 0) ? 1 : 0;
-            case OR -> (l != 0 || r != 0) ? 1 : 0;
+            default -> 0.0;
         };
     }
 

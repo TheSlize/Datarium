@@ -331,19 +331,20 @@ public abstract class MixinFontRenderer {
 
                             TrimResult trim = datarium$scanTrimX(img, x0, y0, cellW, cellH);
                             if (!trim.empty()) {
-                                int drawWidthPx = Math.max(0, trim.widthPx());
-                                int advancePx = drawWidthPx + 1;
+                                int renderHeight = cellHeightFromJson != null ? cellHeightFromJson : 8;
+                                float scale = (float) renderHeight / (float) cellH;
+                                float drawWidth = (float) trim.widthPx() * scale;
+                                int advance = (int) (0.5F + drawWidth) + 1;
                                 float u0 = (float) (x0 + trim.leftPx()) / (float) imgW;
                                 float u1 = (float) (x0 + trim.leftPx() + trim.widthPx()) / (float) imgW;
                                 float v0 = (float) y0 / (float) imgH;
                                 float v1 = (float) (y0 + cellH) / (float) imgH;
 
-                                int renderHeight = cellHeightFromJson != null ? cellHeightFromJson : cellH;
                                 if (codePoint >= 0x20 && codePoint <= 0x7E) {
                                     this.datarium$bitmapGlyphs.put(codePoint, BitmapGlyph.VANILLA);
                                     continue;
                                 }
-                                BitmapGlyph glyph = new BitmapGlyph(atlasLoc, 0.0F, (float) ascent, (float) renderHeight, (float) advancePx, (float) drawWidthPx, 1.0F, false, u0, v0, u1, v1);
+                                BitmapGlyph glyph = new BitmapGlyph(atlasLoc, 0.0F, (float) ascent, (float) renderHeight, (float) advance, drawWidth, 1.0F, false, u0, v0, u1, v1);
                                 this.datarium$bitmapGlyphs.put(codePoint, glyph);
                             }
                         }

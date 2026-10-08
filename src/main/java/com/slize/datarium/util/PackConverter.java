@@ -10,10 +10,10 @@ import com.slize.datarium.mixin.accessors.IAbstractResourcePackAccessor;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.LayeredTexture;
 import net.minecraft.client.resources.AbstractResourcePack;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourcePack;
+import net.minecraft.client.resources.ResourcePackRepository;
 import net.minecraft.client.resources.data.PackMetadataSection;
 import net.minecraft.util.ResourceLocation;
 
@@ -42,8 +42,10 @@ import java.util.function.Predicate;
  * <li>vanilla texture and item model paths, together with their {@code .mcmeta} files;</li>
  * <li>{@code textures/blocks|items/} <-> {@code textures/block|item/} for any namespace;</li>
  * <li>modern item definitions ({@code items/<name>.json}) for legacy item models;</li>
- * <li>entity textures whose modern layout needs a CEM model, including layered villager textures,
- * only while that model is loaded;</li>
+ * <li>1.20.2+ gui sprites and 1.14+ mob effect icons, drawn back into the legacy gui sheets by {@link GuiSheetComposer};</li>
+ * <li>entity textures whose modern layout needs a CEM model, only while that model is loaded;</li>
+ * <li>layered villager textures, flattened into the legacy texture: for the CEM model while it is loaded,
+ * otherwise for the 1.12.2 model once a modern pack supplies a layer;</li>
  * <li>modern item and block ids to legacy id + metadata / block state, for packs with format >= 4;</li>
  * <li>1.12.2 entity ids and vanilla model fields to CEM model and part names.</li>
  * </ul>
@@ -72,6 +74,7 @@ public final class PackConverter {
 
     private static final Map<String, Entry> BY_LEGACY = new HashMap<>();
     private static final Map<String, Entry> BY_MODERN = new HashMap<>();
+    private static final Map<String, GuiSheet> GUI_SHEETS = new HashMap<>();
     private static final Map<String, LegacyItem> ITEMS = new HashMap<>();
     private static final Map<String, BlockMatch[]> BLOCKS = new HashMap<>();
     private static final Map<String, String[]> ENTITY_MODELS = new HashMap<>();
@@ -96,6 +99,7 @@ public final class PackConverter {
                     case "T" -> readNames(parts, TEXTURES, ".png");
                     case "M" -> readNames(parts, ITEM_MODELS, ".json");
                     case "L" -> readLayers(parts);
+                    case "G" -> readGuiSprite(parts);
                     case "I" -> readItem(parts);
                     case "B" -> readBlock(parts);
                     case "E" -> ENTITY_MODELS.put(parts[1], Arrays.copyOfRange(parts, 2, parts.length));
@@ -125,6 +129,12 @@ public final class PackConverter {
         public static final int WHOLE = -1;
     }
 
+    public record GuiSprite(String texture, int x, int y, int width, int height, int border, boolean blend) {
+    }
+
+    public record GuiSheet(int size, List<GuiSprite> sprites) {
+    }
+
     private record Name(String path, int since, @Nullable String gate) {
         boolean interchangeable() {
             return gate == null;
@@ -137,6 +147,7 @@ public final class PackConverter {
         boolean reused;
         @Nullable String layerModel;
         String[] layers = new String[0];
+        int[][] moves = new int[0][];
 
         Entry(String legacy) {
             this.legacy = legacy;
@@ -161,8 +172,27 @@ public final class PackConverter {
     private static void readLayers(String[] parts) {
         Entry entry = BY_LEGACY.computeIfAbsent(TEXTURES + parts[1] + ".png", Entry::new);
         entry.layerModel = parts[2];
-        entry.layers = new String[parts.length - 3];
-        for (int i = 3; i < parts.length; i++) entry.layers[i - 3] = TEXTURES + parts[i] + ".png";
+        List<String> layers = new ArrayList<>();
+        List<int[]> moves = new ArrayList<>();
+        for (int i = 3; i < parts.length; i++) {
+            if (parts[i].indexOf('>') < 0) {
+                layers.add(TEXTURES + parts[i] + ".png");
+            } else {
+                moves.add(Arrays.stream(parts[i].split("[,>]")).mapToInt(Integer::parseInt).toArray());
+            }
+        }
+        entry.layers = layers.toArray(new String[0]);
+        entry.moves = moves.toArray(new int[0][]);
+    }
+
+    private static void readGuiSprite(String[] parts) {
+        int colon = parts[1].indexOf(':');
+        int size = colon < 0 ? 256 : Integer.parseInt(parts[1].substring(colon + 1));
+        boolean blend = parts[2].startsWith("+");
+        GUI_SHEETS.computeIfAbsent(TEXTURES + (colon < 0 ? parts[1] : parts[1].substring(0, colon)) + ".png", _ -> new GuiSheet(size, new ArrayList<>()))
+                .sprites().add(new GuiSprite(TEXTURES + (blend ? parts[2].substring(1) : parts[2]) + ".png", Integer.parseInt(parts[3]),
+                        Integer.parseInt(parts[4]), Integer.parseInt(parts[5]), Integer.parseInt(parts[6]),
+                        parts.length > 7 ? Integer.parseInt(parts[7]) : 0, blend));
     }
 
     private static void readItem(String[] parts) {
@@ -323,6 +353,11 @@ public final class PackConverter {
     }
 
     @Nullable
+    public static GuiSheet guiSheet(ResourceLocation location) {
+        return VANILLA.equals(location.getNamespace()) ? GUI_SHEETS.get(location.getPath()) : null;
+    }
+
+    @Nullable
     public static ResourceLocation entityTexture(@Nullable ResourceLocation original) {
         if (original == null) return null;
         ResourceLocation cached = ENTITY_TEXTURES.get(original);
@@ -335,15 +370,22 @@ public final class PackConverter {
     }
 
     private static ResourceLocation entityTexture(ResourceLocation original, Entry entry) {
-        if (entry.layerModel != null && CEMManager.getModel(entry.layerModel) != null) {
+        if (entry.layerModel != null) {
+            boolean modelled = CEMManager.getModel(entry.layerModel) != null;
+            boolean supplied = modelled;
+            int legacy = modelled ? 0 : priority(packOf(original));
             List<String> layers = new ArrayList<>();
             for (String layer : entry.layers) {
-                ResourceLocation location = modernOrBundled(new ResourceLocation(layer), FLATTENING, BY_LEGACY.containsKey(layer));
-                if (location != null) layers.add(location.toString());
+                ResourceLocation modern = new ResourceLocation(layer);
+                ResourceLocation location = modernOrBundled(modern, FLATTENING, BY_LEGACY.containsKey(layer));
+                if (location == null) continue;
+                layers.add(location.toString());
+                if (!supplied && location == modern && priority(packOf(modern)) >= legacy) supplied = true;
             }
-            if (layers.size() > 1) {
-                ResourceLocation composed = new ResourceLocation(BUNDLED, "cem/" + entry.legacy.replace('/', '_'));
-                Minecraft.getMinecraft().getTextureManager().loadTexture(composed, new LayeredTexture(layers.toArray(new String[0])));
+            if (supplied && layers.size() > 1) {
+                ResourceLocation composed = new ResourceLocation(BUNDLED, (modelled ? "cem/" : "legacy/") + entry.legacy.replace('/', '_'));
+                Minecraft.getMinecraft().getTextureManager().loadTexture(composed,
+                        new LayeredEntityTexture(layers, modelled ? new int[0][] : entry.moves));
                 return composed;
             }
         }
@@ -454,6 +496,14 @@ public final class PackConverter {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private static int priority(@Nullable String pack) {
+        List<ResourcePackRepository.Entry> entries = Minecraft.getMinecraft().getResourcePackRepository().getRepositoryEntries();
+        for (int i = 0; i < entries.size(); i++) {
+            if (entries.get(i).getResourcePackName().equals(pack)) return i;
+        }
+        return -1;
     }
 
     public static final class BlockMatch {

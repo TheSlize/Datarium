@@ -4,8 +4,14 @@
 # T <legacy texture> <format>:<modern texture>[@<cem model>] ...   under textures/, without .png
 #     "@model" - only interchangeable while that CEM model is rendering, "@" - never drawn in place of the legacy file
 #     "!" - 1.13+ still ships the legacy file name, but for something else
-# L <legacy texture> <cem model> <modern layer> ...                modern layers composited while that CEM model is rendering
-# M <legacy item model> <format>:<modern item model> ...           under models/item/, without .json
+# L <legacy texture> <cem model> <modern layer> ... [<x>,<y>,<w>,<h>><x>,<y> ...]
+#     modern layers flattened into one texture: for that CEM model while it is loaded, otherwise for the 1.12.2 model
+#     as soon as a modern pack supplies a layer; "x,y,w,h>x,y" - region the 1.12.2 model reads from another place (64 pixel grid)
+# G <legacy gui sheet>[:<size>] [+]<modern texture> <x> <y> <w> <h> [<border>]
+#     modern texture (a 1.20.2+ gui sprite, a 1.14+ mob effect icon) drawn into that rectangle of the legacy sheet
+#     ":size" - width of the sheet in gui pixels, 256 unless given, "+" - blended over what is already there
+#     "border" - the texture is narrower or wider than the rectangle: keep that many pixels at both ends, stretch the rest
+# M <legacy item model><format>:<modern item model> ...           under models/item/, without .json
 #     "!" - 1.13+ reuses the legacy file name for something else
 # I <modern item id> <legacy item id>[:<metadata>]
 # B <modern block id> <legacy block id>[:<property>=<value>...] ...
@@ -550,17 +556,317 @@ T models/armor/leather_layer_2 42:entity/equipment/humanoid_leggings/leather
 T models/armor/leather_layer_2_overlay 42:entity/equipment/humanoid_leggings/leather_overlay
 
 L entity/villager/farmer villager entity/villager/villager entity/villager/type/plains entity/villager/profession/farmer
-L entity/zombie_villager/zombie_farmer zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/farmer
+L entity/zombie_villager/zombie_farmer zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/farmer 44,22,16,16>44,38
 L entity/villager/librarian villager entity/villager/villager entity/villager/type/plains entity/villager/profession/librarian
-L entity/zombie_villager/zombie_librarian zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/librarian
+L entity/zombie_villager/zombie_librarian zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/librarian 44,22,16,16>44,38
 L entity/villager/priest villager entity/villager/villager entity/villager/type/plains entity/villager/profession/cleric
-L entity/zombie_villager/zombie_priest zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/cleric
+L entity/zombie_villager/zombie_priest zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/cleric 44,22,16,16>44,38
 L entity/villager/smith villager entity/villager/villager entity/villager/type/plains entity/villager/profession/armorer
-L entity/zombie_villager/zombie_smith zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/armorer
+L entity/zombie_villager/zombie_smith zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/armorer 44,22,16,16>44,38
 L entity/villager/butcher villager entity/villager/villager entity/villager/type/plains entity/villager/profession/butcher
-L entity/zombie_villager/zombie_butcher zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/butcher
+L entity/zombie_villager/zombie_butcher zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains entity/zombie_villager/profession/butcher 44,22,16,16>44,38
 L entity/villager/villager villager entity/villager/villager entity/villager/type/plains
-L entity/zombie_villager/zombie_villager zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains
+L entity/zombie_villager/zombie_villager zombie_villager entity/zombie_villager/zombie_villager entity/zombie_villager/type/plains 44,22,16,16>44,38
+
+G gui/advancements/tabs gui/sprites/advancements/tab_above_left 0 0 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_above_left_selected 0 32 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_above_middle 28 0 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_above_middle_selected 28 32 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_above_right 56 0 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_above_right_selected 56 32 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_below_left 84 0 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_below_left_selected 84 32 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_below_middle 112 0 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_below_middle_selected 112 32 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_below_right 140 0 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_below_right_selected 140 32 28 32
+G gui/advancements/tabs gui/sprites/advancements/tab_left_top 0 64 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_left_top_selected 0 92 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_left_middle 32 64 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_left_middle_selected 32 92 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_left_bottom 64 64 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_left_bottom_selected 64 92 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_right_top 96 64 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_right_top_selected 96 92 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_right_middle 128 64 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_right_middle_selected 128 92 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_right_bottom 160 64 32 28
+G gui/advancements/tabs gui/sprites/advancements/tab_right_bottom_selected 160 92 32 28
+G gui/advancements/widgets gui/sprites/advancements/box_obtained 0 0 200 26
+G gui/advancements/widgets gui/sprites/advancements/box_unobtained 0 26 200 26
+G gui/advancements/widgets gui/sprites/advancements/title_box 0 52 200 26
+G gui/advancements/widgets gui/sprites/advancements/task_frame_obtained 0 128 26 26
+G gui/advancements/widgets gui/sprites/advancements/task_frame_unobtained 0 154 26 26
+G gui/advancements/widgets gui/sprites/advancements/challenge_frame_obtained 26 128 26 26
+G gui/advancements/widgets gui/sprites/advancements/challenge_frame_unobtained 26 154 26 26
+G gui/advancements/widgets gui/sprites/advancements/goal_frame_obtained 52 128 26 26
+G gui/advancements/widgets gui/sprites/advancements/goal_frame_unobtained 52 154 26 26
+G gui/bars gui/sprites/boss_bar/pink_background 0 0 182 5
+G gui/bars gui/sprites/boss_bar/pink_progress 0 5 182 5
+G gui/bars gui/sprites/boss_bar/blue_background 0 10 182 5
+G gui/bars gui/sprites/boss_bar/blue_progress 0 15 182 5
+G gui/bars gui/sprites/boss_bar/red_background 0 20 182 5
+G gui/bars gui/sprites/boss_bar/red_progress 0 25 182 5
+G gui/bars gui/sprites/boss_bar/green_background 0 30 182 5
+G gui/bars gui/sprites/boss_bar/green_progress 0 35 182 5
+G gui/bars gui/sprites/boss_bar/yellow_background 0 40 182 5
+G gui/bars gui/sprites/boss_bar/yellow_progress 0 45 182 5
+G gui/bars gui/sprites/boss_bar/purple_background 0 50 182 5
+G gui/bars gui/sprites/boss_bar/purple_progress 0 55 182 5
+G gui/bars gui/sprites/boss_bar/white_background 0 60 182 5
+G gui/bars gui/sprites/boss_bar/white_progress 0 65 182 5
+G gui/bars gui/sprites/boss_bar/notched_6_background 0 80 182 5
+G gui/bars gui/sprites/boss_bar/notched_6_progress 0 85 182 5
+G gui/bars gui/sprites/boss_bar/notched_10_background 0 90 182 5
+G gui/bars gui/sprites/boss_bar/notched_10_progress 0 95 182 5
+G gui/bars gui/sprites/boss_bar/notched_12_background 0 100 182 5
+G gui/bars gui/sprites/boss_bar/notched_12_progress 0 105 182 5
+G gui/bars gui/sprites/boss_bar/notched_20_background 0 110 182 5
+G gui/bars gui/sprites/boss_bar/notched_20_progress 0 115 182 5
+G gui/book gui/sprites/widget/page_forward 0 192 23 13
+G gui/book gui/sprites/widget/page_forward_highlighted 23 192 23 13
+G gui/book gui/sprites/widget/page_backward 0 205 23 13
+G gui/book gui/sprites/widget/page_backward_highlighted 23 205 23 13
+G gui/container/anvil gui/sprites/container/anvil/text_field 0 166 110 16
+G gui/container/anvil gui/sprites/container/anvil/text_field_disabled 0 182 110 16
+G gui/container/anvil gui/sprites/container/anvil/error 176 0 28 21
+G gui/container/beacon gui/sprites/container/beacon/button 0 219 22 22
+G gui/container/beacon gui/sprites/container/beacon/button_selected 22 219 22 22
+G gui/container/beacon gui/sprites/container/beacon/button_disabled 44 219 22 22
+G gui/container/beacon gui/sprites/container/beacon/button_highlighted 66 219 22 22
+G gui/container/beacon gui/sprites/container/beacon/confirm 90 220 18 18
+G gui/container/beacon gui/sprites/container/beacon/cancel 112 220 18 18
+G gui/container/brewing_stand gui/sprites/container/brewing_stand/brew_progress 176 0 9 28
+G gui/container/brewing_stand gui/sprites/container/brewing_stand/bubbles 185 0 12 29
+G gui/container/brewing_stand gui/sprites/container/brewing_stand/fuel_length 176 29 18 4
+G gui/container/crafting_table gui/sprites/recipe_book/button 0 168 20 18
+G gui/container/crafting_table gui/sprites/recipe_book/button_highlighted 0 187 20 18
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_unselected_1 0 0 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_unselected_2 28 0 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_unselected_3 56 0 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_unselected_4 84 0 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_unselected_5 112 0 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_unselected_7 140 0 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_selected_1 0 32 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_selected_2 28 32 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_selected_3 56 32 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_selected_4 84 32 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_selected_5 112 32 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_top_selected_7 140 32 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_unselected_1 0 64 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_unselected_2 28 64 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_unselected_3 56 64 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_unselected_4 84 64 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_unselected_5 112 64 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_unselected_7 140 64 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_selected_1 0 96 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_selected_2 28 96 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_selected_3 56 96 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_selected_4 84 96 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_selected_5 112 96 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/tab_bottom_selected_7 140 96 28 32 3
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/scroller 232 0 12 15
+G gui/container/creative_inventory/tabs gui/sprites/container/creative_inventory/scroller_disabled 244 0 12 15
+G gui/container/enchanting_table gui/sprites/container/enchanting_table/enchantment_slot 0 166 108 19
+G gui/container/enchanting_table gui/sprites/container/enchanting_table/enchantment_slot_disabled 0 185 108 19
+G gui/container/enchanting_table gui/sprites/container/enchanting_table/enchantment_slot_highlighted 0 204 108 19
+G gui/container/enchanting_table gui/sprites/container/enchanting_table/level_1 0 223 16 16
+G gui/container/enchanting_table gui/sprites/container/enchanting_table/level_1_disabled 0 239 16 16
+G gui/container/enchanting_table gui/sprites/container/enchanting_table/level_2 16 223 16 16
+G gui/container/enchanting_table gui/sprites/container/enchanting_table/level_2_disabled 16 239 16 16
+G gui/container/enchanting_table gui/sprites/container/enchanting_table/level_3 32 223 16 16
+G gui/container/enchanting_table gui/sprites/container/enchanting_table/level_3_disabled 32 239 16 16
+G gui/container/furnace gui/sprites/container/furnace/lit_progress 176 0 14 14
+G gui/container/furnace gui/sprites/container/furnace/burn_progress 176 14 24 16
+G gui/container/horse gui/sprites/container/horse/chest_slots 0 166 90 54
+G gui/container/horse gui/sprites/container/slot 0 220 18 18
+G gui/container/horse +gui/sprites/container/slot/horse_armor 1 221 16 16
+G gui/container/horse gui/sprites/container/horse/armor_slot 0 220 18 18
+G gui/container/horse gui/sprites/container/slot 18 220 18 18
+G gui/container/horse +gui/sprites/container/slot/saddle 19 221 16 16
+G gui/container/horse gui/sprites/container/horse/saddle_slot 18 220 18 18
+G gui/container/horse gui/sprites/container/slot 36 220 18 18
+G gui/container/horse +gui/sprites/container/slot/llama_armor 37 221 16 16
+G gui/container/horse gui/sprites/container/horse/llama_armor_slot 36 220 18 18
+G gui/container/inventory gui/sprites/recipe_book/button 178 0 20 18
+G gui/container/inventory gui/sprites/recipe_book/button_highlighted 178 19 20 18
+G gui/container/inventory gui/sprites/container/inventory/effect_background 0 166 140 32 4
+G gui/container/inventory gui/sprites/container/inventory/effect_background_large 0 166 140 32 4
+G gui/container/inventory gui/sprites/hud/effect_background 141 166 24 24
+G gui/container/inventory gui/sprites/hud/effect_background_ambient 165 166 24 24
+G gui/container/inventory mob_effect/speed 0 198 18 18
+G gui/container/inventory mob_effect/slowness 18 198 18 18
+G gui/container/inventory mob_effect/haste 36 198 18 18
+G gui/container/inventory mob_effect/mining_fatigue 54 198 18 18
+G gui/container/inventory mob_effect/strength 72 198 18 18
+G gui/container/inventory mob_effect/weakness 90 198 18 18
+G gui/container/inventory mob_effect/poison 108 198 18 18
+G gui/container/inventory mob_effect/regeneration 126 198 18 18
+G gui/container/inventory mob_effect/invisibility 0 216 18 18
+G gui/container/inventory mob_effect/hunger 18 216 18 18
+G gui/container/inventory mob_effect/jump_boost 36 216 18 18
+G gui/container/inventory mob_effect/nausea 54 216 18 18
+G gui/container/inventory mob_effect/night_vision 72 216 18 18
+G gui/container/inventory mob_effect/blindness 90 216 18 18
+G gui/container/inventory mob_effect/resistance 108 216 18 18
+G gui/container/inventory mob_effect/fire_resistance 126 216 18 18
+G gui/container/inventory mob_effect/water_breathing 0 234 18 18
+G gui/container/inventory mob_effect/wither 18 234 18 18
+G gui/container/inventory mob_effect/absorption 36 234 18 18
+G gui/container/inventory mob_effect/levitation 54 234 18 18
+G gui/container/inventory mob_effect/glowing 72 234 18 18
+G gui/container/inventory mob_effect/luck 90 234 18 18
+G gui/container/inventory mob_effect/unluck 108 234 18 18
+G gui/container/inventory mob_effect/health_boost 126 234 18 18
+G gui/container/stats_icons:128 gui/sprites/container/slot 0 0 18 18
+G gui/container/stats_icons:128 gui/sprites/statistics/sort_down 18 0 18 18
+G gui/container/stats_icons:128 gui/sprites/statistics/sort_up 36 0 18 18
+G gui/container/stats_icons:128 gui/sprites/statistics/header 0 18 18 18
+G gui/container/stats_icons:128 gui/sprites/statistics/item_crafted 18 18 18 18
+G gui/container/stats_icons:128 gui/sprites/statistics/item_used 36 18 18 18
+G gui/container/stats_icons:128 gui/sprites/statistics/block_mined 54 18 18 18
+G gui/container/stats_icons:128 gui/sprites/statistics/item_broken 72 18 18 18
+G gui/container/stats_icons:128 gui/sprites/statistics/item_picked_up 90 18 18 18
+G gui/container/stats_icons:128 gui/sprites/statistics/item_dropped 108 18 18 18
+G gui/container/villager gui/sprites/container/villager/out_of_stock 212 0 28 21
+G gui/icons gui/sprites/hud/crosshair 0 0 15 15
+G gui/icons gui/sprites/hud/heart/container 16 0 9 9
+G gui/icons gui/sprites/hud/heart/container_blinking 25 0 9 9
+G gui/icons gui/sprites/hud/heart/full 52 0 9 9
+G gui/icons gui/sprites/hud/heart/half 61 0 9 9
+G gui/icons gui/sprites/hud/heart/full_blinking 70 0 9 9
+G gui/icons gui/sprites/hud/heart/half_blinking 79 0 9 9
+G gui/icons gui/sprites/hud/heart/poisoned_full 88 0 9 9
+G gui/icons gui/sprites/hud/heart/poisoned_half 97 0 9 9
+G gui/icons gui/sprites/hud/heart/poisoned_full_blinking 106 0 9 9
+G gui/icons gui/sprites/hud/heart/poisoned_half_blinking 115 0 9 9
+G gui/icons gui/sprites/hud/heart/withered_full 124 0 9 9
+G gui/icons gui/sprites/hud/heart/withered_half 133 0 9 9
+G gui/icons gui/sprites/hud/heart/withered_full_blinking 142 0 9 9
+G gui/icons gui/sprites/hud/heart/withered_half_blinking 151 0 9 9
+G gui/icons gui/sprites/hud/heart/absorbing_full 160 0 9 9
+G gui/icons gui/sprites/hud/heart/absorbing_half 169 0 9 9
+G gui/icons gui/sprites/hud/heart/container_hardcore 16 45 9 9
+G gui/icons gui/sprites/hud/heart/container_hardcore_blinking 25 45 9 9
+G gui/icons gui/sprites/hud/heart/hardcore_full 52 45 9 9
+G gui/icons gui/sprites/hud/heart/hardcore_half 61 45 9 9
+G gui/icons gui/sprites/hud/heart/hardcore_full_blinking 70 45 9 9
+G gui/icons gui/sprites/hud/heart/hardcore_half_blinking 79 45 9 9
+G gui/icons gui/sprites/hud/heart/poisoned_hardcore_full 88 45 9 9
+G gui/icons gui/sprites/hud/heart/poisoned_hardcore_half 97 45 9 9
+G gui/icons gui/sprites/hud/heart/poisoned_hardcore_full_blinking 106 45 9 9
+G gui/icons gui/sprites/hud/heart/poisoned_hardcore_half_blinking 115 45 9 9
+G gui/icons gui/sprites/hud/heart/withered_hardcore_full 124 45 9 9
+G gui/icons gui/sprites/hud/heart/withered_hardcore_half 133 45 9 9
+G gui/icons gui/sprites/hud/heart/withered_hardcore_full_blinking 142 45 9 9
+G gui/icons gui/sprites/hud/heart/withered_hardcore_half_blinking 151 45 9 9
+G gui/icons gui/sprites/hud/heart/absorbing_hardcore_full 160 45 9 9
+G gui/icons gui/sprites/hud/heart/absorbing_hardcore_half 169 45 9 9
+G gui/icons gui/sprites/hud/armor_empty 16 9 9 9
+G gui/icons gui/sprites/hud/armor_half 25 9 9 9
+G gui/icons gui/sprites/hud/armor_full 34 9 9 9
+G gui/icons gui/sprites/hud/heart/vehicle_container 52 9 9 9
+G gui/icons gui/sprites/hud/heart/vehicle_full 88 9 9 9
+G gui/icons gui/sprites/hud/heart/vehicle_half 97 9 9 9
+G gui/icons gui/sprites/hud/air 16 18 9 9
+G gui/icons gui/sprites/hud/air_bursting 25 18 9 9
+G gui/icons gui/sprites/hud/food_empty 16 27 9 9
+G gui/icons gui/sprites/hud/food_full 52 27 9 9
+G gui/icons gui/sprites/hud/food_half 61 27 9 9
+G gui/icons gui/sprites/hud/food_full_hunger 88 27 9 9
+G gui/icons gui/sprites/hud/food_half_hunger 97 27 9 9
+G gui/icons gui/sprites/hud/food_empty_hunger 133 27 9 9
+G gui/icons gui/sprites/hud/experience_bar_background 0 64 182 5
+G gui/icons gui/sprites/hud/experience_bar_progress 0 69 182 5
+G gui/icons gui/sprites/hud/jump_bar_background 0 84 182 5
+G gui/icons gui/sprites/hud/jump_bar_progress 0 89 182 5
+G gui/icons gui/sprites/hud/hotbar_attack_indicator_background 0 94 18 18
+G gui/icons gui/sprites/hud/hotbar_attack_indicator_progress 18 94 18 18
+G gui/icons gui/sprites/hud/crosshair_attack_indicator_background 36 94 16 4
+G gui/icons gui/sprites/hud/crosshair_attack_indicator_progress 52 94 16 4
+G gui/icons gui/sprites/hud/crosshair_attack_indicator_full 68 94 16 16
+G gui/icons gui/sprites/icon/ping_5 0 176 10 8
+G gui/icons gui/sprites/server_list/pinging_1 10 176 10 8
+G gui/icons gui/sprites/icon/ping_4 0 184 10 8
+G gui/icons gui/sprites/server_list/pinging_2 10 184 10 8
+G gui/icons gui/sprites/icon/ping_3 0 192 10 8
+G gui/icons gui/sprites/server_list/pinging_3 10 192 10 8
+G gui/icons gui/sprites/icon/ping_2 0 200 10 8
+G gui/icons gui/sprites/server_list/pinging_4 10 200 10 8
+G gui/icons gui/sprites/icon/ping_1 0 208 10 8
+G gui/icons gui/sprites/server_list/pinging_5 10 208 10 8
+G gui/icons gui/sprites/icon/ping_unknown 0 216 10 8
+G gui/recipe_book gui/sprites/recipe_book/tab 153 2 35 27
+G gui/recipe_book gui/sprites/recipe_book/tab_selected 188 2 35 27
+G gui/recipe_book gui/sprites/recipe_book/filter_disabled 152 41 26 16
+G gui/recipe_book gui/sprites/recipe_book/filter_disabled_highlighted 152 59 26 16
+G gui/recipe_book gui/sprites/recipe_book/filter_enabled 180 41 26 16
+G gui/recipe_book gui/sprites/recipe_book/filter_enabled_highlighted 180 59 26 16
+G gui/recipe_book gui/sprites/recipe_book/crafting_overlay 152 78 24 24
+G gui/recipe_book gui/sprites/recipe_book/crafting_overlay_disabled 178 78 24 24
+G gui/recipe_book gui/sprites/recipe_book/crafting_overlay_highlighted 152 104 24 24
+G gui/recipe_book gui/sprites/recipe_book/crafting_overlay_disabled_highlighted 178 104 24 24
+G gui/recipe_book gui/sprites/recipe_book/page_forward 1 208 12 17
+G gui/recipe_book gui/sprites/recipe_book/page_forward_highlighted 1 226 12 17
+G gui/recipe_book gui/sprites/recipe_book/page_backward 14 208 12 17
+G gui/recipe_book gui/sprites/recipe_book/page_backward_highlighted 14 226 12 17
+G gui/recipe_book gui/sprites/recipe_book/slot_craftable 29 206 25 25
+G gui/recipe_book gui/sprites/recipe_book/slot_uncraftable 54 206 25 25
+G gui/recipe_book gui/sprites/recipe_book/slot_many_craftable 29 231 25 25
+G gui/recipe_book gui/sprites/recipe_book/slot_many_uncraftable 54 231 25 25
+G gui/recipe_book gui/sprites/recipe_book/overlay_recipe 82 208 32 32
+G gui/resource_packs gui/sprites/transferable_list/select 0 0 32 32
+G gui/resource_packs gui/sprites/transferable_list/select_highlighted 0 32 32 32
+G gui/resource_packs gui/sprites/transferable_list/unselect 32 0 32 32
+G gui/resource_packs gui/sprites/transferable_list/unselect_highlighted 32 32 32 32
+G gui/resource_packs gui/sprites/transferable_list/move_down 64 0 32 32
+G gui/resource_packs gui/sprites/transferable_list/move_down_highlighted 64 32 32 32
+G gui/resource_packs gui/sprites/transferable_list/move_up 96 0 32 32
+G gui/resource_packs gui/sprites/transferable_list/move_up_highlighted 96 32 32 32
+G gui/server_selection gui/sprites/server_list/join 0 0 32 32
+G gui/server_selection gui/sprites/server_list/join_highlighted 0 32 32 32
+G gui/server_selection gui/sprites/server_list/move_down 64 0 32 32
+G gui/server_selection gui/sprites/server_list/move_down_highlighted 64 32 32 32
+G gui/server_selection gui/sprites/server_list/move_up 96 0 32 32
+G gui/server_selection gui/sprites/server_list/move_up_highlighted 96 32 32 32
+G gui/world_selection gui/sprites/world_list/join 0 0 32 32
+G gui/world_selection gui/sprites/world_list/join_highlighted 0 32 32 32
+G gui/world_selection gui/sprites/world_list/marked_join 32 0 32 32
+G gui/world_selection gui/sprites/world_list/marked_join_highlighted 32 32 32 32
+G gui/world_selection gui/sprites/world_list/warning 64 0 32 32
+G gui/world_selection gui/sprites/world_list/warning_highlighted 64 32 32 32
+G gui/world_selection gui/sprites/world_list/error 96 0 32 32
+G gui/world_selection gui/sprites/world_list/error_highlighted 96 32 32 32
+G gui/spectator_widgets gui/sprites/spectator/teleport_to_player 0 0 16 16
+G gui/spectator_widgets gui/sprites/spectator/teleport_to_team 16 0 16 16
+G gui/spectator_widgets gui/sprites/spectator/close 128 0 16 16
+G gui/spectator_widgets gui/sprites/spectator/scroll_left 144 0 16 16
+G gui/spectator_widgets gui/sprites/spectator/scroll_right 160 0 16 16
+G gui/toasts gui/sprites/toast/advancement 0 0 160 32
+G gui/toasts gui/sprites/toast/recipe 0 32 160 32
+G gui/toasts gui/sprites/toast/tutorial 0 96 160 32
+G gui/toasts gui/sprites/toast/movement_keys 176 0 20 20
+G gui/toasts gui/sprites/toast/mouse 196 0 20 20
+G gui/toasts gui/sprites/toast/tree 216 0 20 20
+G gui/toasts gui/sprites/toast/recipe_book 176 20 20 20
+G gui/toasts gui/sprites/toast/wooden_planks 196 20 20 20
+G gui/widgets gui/sprites/hud/hotbar 0 0 182 22
+G gui/widgets gui/sprites/hud/hotbar_selection 0 22 24 23
+G gui/widgets gui/sprites/hud/hotbar_offhand_left 24 22 29 24
+G gui/widgets gui/sprites/hud/hotbar_offhand_right 53 22 29 24
+G gui/widgets gui/sprites/widget/button_disabled 0 46 200 20
+G gui/widgets gui/sprites/widget/button 0 66 200 20
+G gui/widgets gui/sprites/widget/button_highlighted 0 86 200 20
+G gui/widgets gui/sprites/widget/button 0 106 20 20 3
+G gui/widgets +gui/sprites/icon/language 3 109 15 15
+G gui/widgets gui/sprites/widget/button_highlighted 0 126 20 20 3
+G gui/widgets +gui/sprites/icon/language 3 129 15 15
+G gui/widgets gui/sprites/widget/locked_button 0 146 20 20
+G gui/widgets gui/sprites/widget/unlocked_button 20 146 20 20
+G gui/widgets gui/sprites/widget/locked_button_highlighted 0 166 20 20
+G gui/widgets gui/sprites/widget/unlocked_button_highlighted 20 166 20 20
+G gui/widgets gui/sprites/widget/locked_button_disabled 0 186 20 20
+G gui/widgets gui/sprites/widget/unlocked_button_disabled 20 186 20 20
 
 M andesite_smooth 4:polished_andesite
 M anvil_intact 4:anvil

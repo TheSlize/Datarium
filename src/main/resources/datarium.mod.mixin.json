@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "target": "@env(MOD)",
   "client": [
+    "armoredarms.MixinBone",
     "hbm.MixinModelRendererObj"
   ],
   "mixins": [],

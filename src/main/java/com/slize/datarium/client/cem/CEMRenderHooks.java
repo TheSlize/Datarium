@@ -86,8 +86,11 @@ public class CEMRenderHooks {
     /** Transform-only source for parts of a layer model without its own .jem (armor). */
     @Nullable
     public static CEMModelRenderer getMirrorSource(ModelRenderer part) {
-        CEMManager.SecondaryBinding b = datarium$binding(part);
-        CEMModelRenderer mirror = b != null ? b.mirrors.get(part) : null;
+        CEMModelRenderer mirror = CEMFirstPerson.armSource(part);
+        if (mirror == null) {
+            CEMManager.SecondaryBinding b = datarium$binding(part);
+            mirror = b != null ? b.mirrors.get(part) : null;
+        }
         if (mirror != null) mirror.pin();
         return mirror;
     }

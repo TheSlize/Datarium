@@ -13,9 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Mixin(RenderLivingBase.class)
@@ -26,7 +25,7 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     @Unique private Map<String, ModelRenderer> datarium$cachedPartMap = null;
     @Unique private String datarium$cachedModelName = null;
     @Unique private Class<?> datarium$cachedModelClass = null;
-    @Unique private final List<ModelRenderer> datarium$hiddenParts = new ArrayList<>();
+    @Unique private final ArrayDeque<ModelRenderer> datarium$hiddenParts = new ArrayDeque<>();
 
     @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("HEAD"))
     private void datarium$onDoRenderHead(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
@@ -216,10 +215,8 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
             wrapper.updatePruning(state, CEMManager.getAnimator(CEMRenderHooks.getActiveModelName()));
         }
 
-        for (int i = 0; i < datarium$hiddenParts.size(); i++) {
-            datarium$hiddenParts.get(i).showModel = true;
-        }
-        datarium$hiddenParts.clear();
+        ModelRenderer hidden;
+        while ((hidden = datarium$hiddenParts.pollFirst()) != null) hidden.showModel = true;
 
         if (state != null && partMap != null) {
             for (Map.Entry<String, ModelRenderer> entry : partMap.entrySet()) {

@@ -6,6 +6,7 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.util.EnumHandSide;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +20,22 @@ public final class CEMFirstPerson {
     private static String cachedModelName;
     private static Class<?> cachedModelClass;
 
+    private static Object armTarget;
+    private static CEMModelRenderer armSource;
+
     public static boolean isActive() { return activeHand != null; }
+
+    public static void bindArm(Object part) {
+        CEMModelWrapper wrapper = CEMRenderHooks.getActiveWrapper();
+        if (activeHand == null || wrapper == null) return;
+        armSource = wrapper.getPartRenderer(activeHand == EnumHandSide.RIGHT ? "right_arm" : "left_arm");
+        armTarget = armSource != null ? part : null;
+    }
+
+    @Nullable
+    public static CEMModelRenderer armSource(Object part) {
+        return armTarget != null && part == armTarget ? armSource : null;
+    }
 
     public static void begin(AbstractClientPlayer player, ModelBase mainModel, EnumHandSide side) {
         String modelName = CEMManager.getModelNameForEntity(player);
@@ -91,6 +107,8 @@ public final class CEMFirstPerson {
 
     public static void end() {
         activeHand = null;
+        armTarget = null;
+        armSource = null;
         CEMRenderHooks.clearAll();
     }
 }

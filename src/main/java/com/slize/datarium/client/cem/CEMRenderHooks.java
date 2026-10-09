@@ -37,6 +37,9 @@ public class CEMRenderHooks {
     }
 
     public static void setActiveMainModel(ModelBase model) { activeMainModel.set(model); }
+
+    @Nullable
+    public static ModelBase getActiveMainModel() { return activeMainModel.get(); }
     public static Object[] snapshot() {
         return new Object[]{
                 activeWrapper.get(), activeTransforms.get(), activePartMap.get(), activeReplacements.get(),

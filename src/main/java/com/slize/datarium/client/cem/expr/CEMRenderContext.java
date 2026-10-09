@@ -6,6 +6,7 @@ import com.slize.datarium.mixin.accessors.AccessorEntityLivingBase;
 import com.slize.datarium.mixin.accessors.AccessorEntityPigZombie;
 import jakarta.annotation.Nullable;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelBiped;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -275,7 +276,7 @@ public class CEMRenderContext {
 
             case IS_CLIMBING -> entity != null && entity.isOnLadder() ? 1 : 0;
             case IS_GLIDING -> entity != null && entity.isElytraFlying() ? 1 : 0;
-            case IS_USING_ITEM -> entity != null && entity.isHandActive() ? 1 : 0;
+            case IS_USING_ITEM -> isUsingItem() ? 1 : 0;
             case IS_BLOCKING -> entity != null && entity.isActiveItemStackBlocking() ? 1 : 0;
             case IS_JUMPING -> entity != null
                     && ((AccessorEntityLivingBase) entity).datarium$isJumping() ? 1 : 0;
@@ -460,6 +461,14 @@ public class CEMRenderContext {
         if (entity instanceof EntityGuardian guardian) return guardian.hasTargetedEntity();
         if (entity instanceof EntityVex vex) return vex.isCharging();
         return entity instanceof EntityLiving living && living.getAttackTarget() != null;
+    }
+
+    private boolean isUsingItem() {
+        if (entity == null) return false;
+        if (entity.isHandActive()) return true;
+        if (!(entity instanceof EntityPlayer) || CEMFirstPerson.isActive()) return false;
+        return CEMRenderHooks.getActiveMainModel() instanceof ModelBiped biped
+                && (biped.rightArmPose == ModelBiped.ArmPose.BOW_AND_ARROW || biped.leftArmPose == ModelBiped.ArmPose.BOW_AND_ARROW);
     }
 
     private boolean isMainHand(EnumHandSide side) {

@@ -23,6 +23,7 @@
     "misc.MixinResourcePackListEntry",
     "render.blocks.MixinBlockPartDeserializer",
     "render.cem.MixinEntityRendererFOV",
+    "render.cem.MixinGlStateManagerCEM",
     "render.cem.MixinMinecraftDebug",
     "render.cem.MixinRenderEffects",
     "render.cem.MixinRenderLivingLeash",

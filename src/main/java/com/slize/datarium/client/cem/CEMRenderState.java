@@ -17,6 +17,16 @@ public class CEMRenderState {
     /** Set once per frame by MixinRenderLivingBase, read by the main and layer-model passes. See CEMThrottle. */
     public boolean animateThisFrame = true;
 
+    /** Animation entries worth running for the textures this entity was last drawn with, see CEMModelWrapper.updatePruning. */
+    public Object pruneOwner;
+    public int[] prunedEntries;
+    public String[] prunedParts;
+    public String[] applyParts;
+    public CEMPartTransform[] applyList;
+    public CEMTextureMask[] pruneMasks;
+    public int pruneSecondaries;
+    public int pruneVersion;
+
     public CEMRenderState() {
         this.context = new CEMRenderContext();
         this.transforms = new HashMap<>();

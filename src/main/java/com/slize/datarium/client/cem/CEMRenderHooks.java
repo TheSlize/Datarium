@@ -2,26 +2,39 @@ package com.slize.datarium.client.cem;
 
 import com.slize.datarium.client.cem.expr.CEMRenderContext;
 import com.slize.datarium.mixin.accessors.IModelRendererAccessor;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
 public class CEMRenderHooks {
-    private static final ThreadLocal<CEMModelWrapper> activeWrapper = new ThreadLocal<>();
-    private static final ThreadLocal<Map<String, CEMPartTransform>> activeTransforms = new ThreadLocal<>();
-    private static final ThreadLocal<Map<String, ModelRenderer>> activePartMap = new ThreadLocal<>();
-    private static final ThreadLocal<Map<ModelRenderer, CEMModelRenderer>> activeReplacements = new ThreadLocal<>();
-    private static final ThreadLocal<EntityLivingBase> activeEntity = new ThreadLocal<>();
-    private static final ThreadLocal<Float> activePartialTicks = new ThreadLocal<>();
-    private static final ThreadLocal<String> activeModelName = new ThreadLocal<>();
-    private static final ThreadLocal<CEMRenderContext> activeContext = new ThreadLocal<>();
-    private static final ThreadLocal<CEMRenderState> activeState = new ThreadLocal<>();
-    private static final ThreadLocal<ModelBase> activeMainModel = new ThreadLocal<>();
-    private static final ThreadLocal<CEMModelWrapper> activeSecondaryWrapper = new ThreadLocal<>();
+    private static final Slot<CEMModelWrapper> activeWrapper = new Slot<>();
+    private static final Slot<Map<String, CEMPartTransform>> activeTransforms = new Slot<>();
+    private static final Slot<Map<String, ModelRenderer>> activePartMap = new Slot<>();
+    private static final Slot<Map<ModelRenderer, CEMModelRenderer>> activeReplacements = new Slot<>();
+    private static final Slot<EntityLivingBase> activeEntity = new Slot<>();
+    private static final Slot<Float> activePartialTicks = new Slot<>();
+    private static final Slot<String> activeModelName = new Slot<>();
+    private static final Slot<CEMRenderContext> activeContext = new Slot<>();
+    private static final Slot<CEMRenderState> activeState = new Slot<>();
+    private static final Slot<ModelBase> activeMainModel = new Slot<>();
+    private static final Slot<CEMModelWrapper> activeSecondaryWrapper = new Slot<>();
     private static boolean renderingInGui;
+
+    private static final class Slot<T> {
+        private T value;
+
+        T get() { return value; }
+
+        void set(T value) { this.value = value; }
+
+        void remove() { this.value = null; }
+    }
 
     public static void setActiveMainModel(ModelBase model) { activeMainModel.set(model); }
     public static Object[] snapshot() {
@@ -47,7 +60,7 @@ public class CEMRenderHooks {
         set(activeSecondaryWrapper, (CEMModelWrapper) s[10]);
     }
 
-    private static <T> void set(ThreadLocal<T> local, @Nullable T value) {
+    private static <T> void set(Slot<T> local, @Nullable T value) {
         if (value == null) local.remove();
         else local.set(value);
     }
@@ -74,7 +87,9 @@ public class CEMRenderHooks {
     @Nullable
     public static CEMModelRenderer getMirrorSource(ModelRenderer part) {
         CEMManager.SecondaryBinding b = datarium$binding(part);
-        return b != null ? b.mirrors.get(part) : null;
+        CEMModelRenderer mirror = b != null ? b.mirrors.get(part) : null;
+        if (mirror != null) mirror.pin();
+        return mirror;
     }
 
     @Nullable
@@ -127,6 +142,17 @@ public class CEMRenderHooks {
 
     public static void setActiveReplacements(Map<ModelRenderer, CEMModelRenderer> replacements) {
         activeReplacements.set(replacements);
+    }
+
+    /** @return true if {@code vanillaPart} is replaced by a CEM part that draws nothing with {@code texture} bound. */
+    public static boolean drawsNothing(ModelRenderer vanillaPart, ResourceLocation texture, float scale) {
+        if (CEMGenericRender.inSession()) return false;
+        CEMModelRenderer replacement = getReplacement(vanillaPart);
+        if (replacement == null) return false;
+        ITextureObject object = Minecraft.getMinecraft().getTextureManager().getTexture(texture);
+        if (object == null) return false;
+        CEMTextureMask mask = CEMTextureMask.peek(object.getGlTextureId());
+        return mask != null && replacement.drawsNothingFor(mask, scale);
     }
 
     @Nullable

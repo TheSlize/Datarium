@@ -1,7 +1,9 @@
 package com.slize.datarium.client.cem;
 
 import com.slize.datarium.DatariumMain;
+import com.slize.datarium.client.cem.expr.CEMProfiler;
 import com.slize.datarium.client.cet.CETRender;
+import com.slize.datarium.util.PackConverter;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 
@@ -16,6 +18,17 @@ public class CEMModelWrapper {
     private final Map<String, CEMModelRenderer> conventionCache = new HashMap<>();
     private final Map<String, CEMModelRenderer> attachmentCache = new HashMap<>();
     private final List<CEMModelRenderer> rootRenderers = new ArrayList<>();
+    private final List<CEMModelRenderer> touchedRenderers = new ArrayList<>();
+    private final List<CEMModelRenderer> transformedRenderers = new ArrayList<>();
+    private final CEMModelRenderer.RenderLog renderLog = new CEMModelRenderer.RenderLog();
+    private final Map<List<Object>, Pruning> pruneCache = new HashMap<>();
+    private int pruneCacheVersion = -1;
+
+    private static final int MAX_PRUNE_CACHE = 512;
+    private static final Pruning EVERYTHING = new Pruning(null, null);
+
+    /** Animator entries left to run and the parts they write, both null when nothing can be skipped. */
+    private record Pruning(@Nullable int[] entries, @Nullable String[] parts) {}
 
     /** tokens that never appear in CEM part names */
     private static final Set<String> NOISE_TOKENS = new HashSet<>(Arrays.asList(
@@ -39,6 +52,8 @@ public class CEMModelWrapper {
             currentPath = parentPath != null ? parentPath + "." + partName : partName;
         }
 
+        renderer.trackTouched(touchedRenderers);
+        renderer.trackRenders(renderLog);
         if (id != null) partRenderers.put(id, renderer);
         if (partName != null) partRenderers.putIfAbsent(partName, renderer);
         if (currentPath != null && !currentPath.equals(id) && !currentPath.equals(partName)) {
@@ -153,7 +168,8 @@ public class CEMModelWrapper {
 
     /** The wrapper is shared by every entity of the type - stale transforms leak between them. */
     public void clearTransforms() {
-        for (CEMModelRenderer r : partRenderers.values()) r.setTransform(null);
+        for (int i = 0; i < transformedRenderers.size(); i++) transformedRenderers.get(i).setTransform(null);
+        transformedRenderers.clear();
     }
 
     public List<CEMModelRenderer> getRootRenderers() {
@@ -162,11 +178,8 @@ public class CEMModelWrapper {
 
     public void detachVanillaParts() {
         hostedRoots.clear();
-        for (CEMModelRenderer r : partRenderers.values()) {
-            r.setVanillaPart(null);
-            r.setPivotOverride(null);
-            r.clearExtras();
-        }
+        for (int i = 0; i < touchedRenderers.size(); i++) touchedRenderers.get(i).detach();
+        touchedRenderers.clear();
     }
 
     public void renderOrphanRoots(float scale) {
@@ -179,12 +192,117 @@ public class CEMModelWrapper {
 
     public void applyTransforms(Map<String, CEMPartTransform> transforms) {
         for (Map.Entry<String, CEMPartTransform> entry : transforms.entrySet()) {
-            String key = entry.getKey();
-            CEMModelRenderer renderer = key.indexOf(':') >= 0 ? resolveHierarchy(key) : partRenderers.get(key);
-            if (renderer != null) {
-                renderer.setTransform(entry.getValue());
-            }
+            applyTransform(entry.getKey(), entry.getValue());
         }
+    }
+
+    /** Same as {@link #applyTransforms(Map)}, visiting only the parts the entity's pruned animation writes. */
+    public void applyTransforms(CEMRenderState state) {
+        String[] parts = prunedEntries(state) != null ? state.prunedParts : null;
+        if (parts == null) {
+            applyTransforms(state.transforms);
+            return;
+        }
+        if (state.applyParts != parts) {
+            CEMPartTransform[] list = new CEMPartTransform[parts.length];
+            for (int i = 0; i < parts.length; i++) list[i] = state.transforms.get(parts[i]);
+            state.applyParts = parts;
+            state.applyList = list;
+        }
+        CEMPartTransform[] list = state.applyList;
+        for (int i = 0; i < list.length; i++) {
+            if (list[i] != null) applyTransform(parts[i], list[i]);
+        }
+    }
+
+    private void applyTransform(String key, CEMPartTransform transform) {
+        if (transform.boundWrapper != this) {
+            transform.boundRenderer = key.indexOf(':') >= 0 ? resolveHierarchy(key) : partRenderers.get(key);
+            transform.boundWrapper = this;
+        }
+        CEMModelRenderer renderer = transform.boundRenderer;
+        if (renderer != null && !transform.isEmpty()) {
+            renderer.setTransform(transform);
+            transformedRenderers.add(renderer);
+        }
+    }
+
+    public void beginRenderLog() {
+        renderLog.masks.clear();
+    }
+
+    /** @return entries of this model's animator to run for {@code state}, null for all of them. */
+    @Nullable
+    public int[] prunedEntries(CEMRenderState state) {
+        if (state.pruneOwner != this || CEMDebugSystem.enabled || CEMProfiler.enabled || CEMApiState.hasHooks()) return null;
+        return state.prunedEntries;
+    }
+
+    /**
+     * Called once the entity is drawn: works out which animations only move parts that are fully transparent
+     * in every texture it was just drawn with, so the next frame can skip them.
+     */
+    public void updatePruning(CEMRenderState state, @Nullable CEMAnimator animator) {
+        List<CEMTextureMask> masks = renderLog.masks;
+        if (animator == null || masks.isEmpty()) {
+            state.pruneOwner = null;
+            return;
+        }
+
+        int version = CEMModelRenderer.structureVersion();
+        int secondaries = state.secondaryTransforms.size();
+        if (state.pruneOwner == this && state.pruneVersion == version && state.pruneSecondaries == secondaries
+                && sameMasks(state.pruneMasks, masks)) return;
+
+        if (pruneCacheVersion != version || pruneCache.size() >= MAX_PRUNE_CACHE) {
+            pruneCache.clear();
+            pruneCacheVersion = version;
+        }
+        List<Object> key = new ArrayList<>(masks);
+        key.addAll(state.secondaryTransforms.keySet());
+        Pruning pruning = pruneCache.get(key);
+        if (pruning == null) {
+            pruning = computePruning(animator, new ArrayList<>(masks), renderLog.scale, state.secondaryTransforms.keySet());
+            pruneCache.put(key, pruning);
+        }
+
+        state.pruneOwner = this;
+        state.pruneVersion = version;
+        state.pruneSecondaries = secondaries;
+        state.pruneMasks = masks.toArray(new CEMTextureMask[0]);
+        state.prunedEntries = pruning.entries;
+        state.prunedParts = pruning.parts;
+    }
+
+    private static boolean sameMasks(@Nullable CEMTextureMask[] previous, List<CEMTextureMask> masks) {
+        if (previous == null || previous.length != masks.size()) return false;
+        for (int i = 0; i < previous.length; i++) {
+            if (previous[i] != masks.get(i)) return false;
+        }
+        return true;
+    }
+
+    private Pruning computePruning(CEMAnimator animator, List<CEMTextureMask> masks, float scale, Set<String> secondaryModels) {
+        if (masks.contains(null)) return EVERYTHING;
+
+        Set<String> external = new HashSet<>();
+        for (String secondary : secondaryModels) {
+            CEMAnimator layer = CEMManager.getAnimator(secondary);
+            if (layer != null) external.addAll(layer.partRefs());
+        }
+        Map<String, String> aliases = PackConverter.transformAliases(modelName);
+        Collection<String> aliasSources = aliases != null ? aliases.values() : Collections.emptySet();
+
+        int[] entries = animator.prune(partId -> {
+            if (aliasSources.contains(partId)) return false;
+            CEMModelRenderer renderer = partId.indexOf(':') >= 0 ? resolveHierarchy(partId) : partRenderers.get(partId);
+            return renderer != null && renderer.isUnusedFor(masks, scale);
+        }, external);
+        if (entries == null) return EVERYTHING;
+
+        Set<String> parts = animator.partIds(entries);
+        if (aliases != null) parts.addAll(aliases.keySet());
+        return new Pruning(entries, parts.toArray(new String[0]));
     }
 
     public void renderDebug(float scale) {

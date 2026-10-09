@@ -85,6 +85,7 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
         CEMRenderHooks.setActiveState(state);
 
         wrapper.detachVanillaParts();
+        wrapper.beginRenderLog();
 
         Map<ModelRenderer, CEMModelRenderer> replacements = new HashMap<>();
         for (Map.Entry<String, ModelRenderer> entry : datarium$cachedPartMap.entrySet()) {
@@ -152,10 +153,10 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
         wrapper.clearTransforms();
         if (state.animateThisFrame) {
             CEMAnimator animator = CEMManager.getAnimator(CEMRenderHooks.getActiveModelName());
-            if (animator != null) animator.evaluate(state.context, state.transforms);
+            if (animator != null) animator.evaluate(state.context, state.transforms, wrapper.prunedEntries(state));
             CEMPartMapping.applyTransformAliases(CEMRenderHooks.getActiveModelName(), state.transforms);
         }
-        wrapper.applyTransforms(state.transforms);
+        wrapper.applyTransforms(state);
     }
 
     @Inject(method = "renderModel", at = @At("HEAD"))
@@ -210,6 +211,10 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     private void datarium$onDoRenderReturn(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
         CEMRenderState state = CEMRenderHooks.getActiveState();
         Map<String, ModelRenderer> partMap = CEMRenderHooks.getActivePartMap();
+        CEMModelWrapper wrapper = CEMRenderHooks.getActiveWrapper();
+        if (state != null && wrapper != null) {
+            wrapper.updatePruning(state, CEMManager.getAnimator(CEMRenderHooks.getActiveModelName()));
+        }
 
         for (int i = 0; i < datarium$hiddenParts.size(); i++) {
             datarium$hiddenParts.get(i).showModel = true;

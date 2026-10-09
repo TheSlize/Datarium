@@ -41,6 +41,7 @@ public class CEMRenderContext {
     private boolean[] varIsSet = EMPTY_BOOLS;
 
     private final Map<String, Double> partValues;
+    private int childState = -1;
 
     @Nullable private EntityLivingBase entity;
     @Nullable private Entity anyEntity;
@@ -121,6 +122,7 @@ public class CEMRenderContext {
 
         partValues.clear();
         Arrays.fill(renderValues, Double.NaN);
+        childState = -1;
     }
 
     public void setRuleIndex(int ruleIndex) {
@@ -212,7 +214,10 @@ public class CEMRenderContext {
             case FRAME_TIME -> frameTime;
             case FRAME_COUNTER -> frameCounter;
 
-            case IS_CHILD -> entity != null && entity.isChild() ? 1 : 0;
+            case IS_CHILD -> {
+                if (childState < 0) childState = entity != null && entity.isChild() ? 1 : 0;
+                yield childState;
+            }
             case IS_RIDING -> anyEntity != null && anyEntity.isRiding() ? 1 : 0;
             case IS_RIDDEN -> anyEntity != null && !anyEntity.getPassengers().isEmpty() ? 1 : 0;
             case IS_SNEAKING -> anyEntity != null && anyEntity.isSneaking() ? 1 : 0;

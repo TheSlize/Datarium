@@ -25,6 +25,14 @@ public class CEMPartTransform {
     public boolean hasVisible = false;
     public boolean hasVisibleBoxes = false;
 
+    CEMModelWrapper boundWrapper;
+    CEMModelRenderer boundRenderer;
+
+    public boolean isEmpty() {
+        return !(hasRotateX || hasRotateY || hasRotateZ || hasTranslateX || hasTranslateY || hasTranslateZ
+                || hasScaleX || hasScaleY || hasScaleZ || hasVisible || hasVisibleBoxes);
+    }
+
     public void reset() {
         rotateX = rotateY = rotateZ = 0;
         translateX = translateY = translateZ = 0;

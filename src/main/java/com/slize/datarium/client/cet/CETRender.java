@@ -1,6 +1,8 @@
 package com.slize.datarium.client.cet;
 
+import com.slize.datarium.client.cem.CEMRenderHooks;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.entity.Entity;
@@ -114,6 +116,10 @@ public final class CETRender {
     }
 
     public static void renderTopLevel(Runnable render) {
+        renderTopLevel(render, null, 0.0F);
+    }
+
+    public static void renderTopLevel(Runnable render, @Nullable ModelRenderer part, float scale) {
         int depth = CETState.modelPartDepth;
         CETTexture texture = depth == 0 ? CETState.currentTexture : null;
         CETState.modelPartDepth = depth + 1;
@@ -122,12 +128,17 @@ public final class CETRender {
         } finally {
             CETState.modelPartDepth = depth;
         }
-        if (depth == 0 && texture != null && texture.hasOverlays()) renderOverlays(texture, render);
+        if (depth == 0 && texture != null && texture.hasOverlays()) renderOverlays(texture, render, part, scale);
     }
 
     public static void renderOverlays(CETTexture texture, Runnable render) {
+        renderOverlays(texture, render, null, 0.0F);
+    }
+
+    private static void renderOverlays(CETTexture texture, Runnable render, @Nullable ModelRenderer part, float scale) {
         ResourceLocation emissive = CETConfig.canDoEmissiveTextures() ? texture.getEmissiveIdentifierOfCurrentState() : null;
         ResourceLocation enchant = CETConfig.enableEnchantedTextures ? texture.getEnchantIdentifierOfCurrentState() : null;
+        if (emissive != null && part != null && CEMRenderHooks.drawsNothing(part, emissive, scale)) emissive = null;
         if (emissive == null && enchant == null) return;
         int previous = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
         if (emissive != null) renderEmissive(emissive, render);

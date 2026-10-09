@@ -15,7 +15,7 @@ public abstract class MixinModelRendererCET {
             original.call(scale);
             return;
         }
-        CETRender.renderTopLevel(() -> original.call(scale));
+        CETRender.renderTopLevel(() -> original.call(scale), (ModelRenderer) (Object) this, scale);
     }
 
     @WrapMethod(method = "renderWithRotation")
@@ -24,6 +24,6 @@ public abstract class MixinModelRendererCET {
             original.call(scale);
             return;
         }
-        CETRender.renderTopLevel(() -> original.call(scale));
+        CETRender.renderTopLevel(() -> original.call(scale), (ModelRenderer) (Object) this, scale);
     }
 }

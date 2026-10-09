@@ -1,5 +1,6 @@
 package com.slize.datarium.client.cem;
 
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.model.ModelBase;
@@ -8,13 +9,16 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldVertexBufferUploader;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.nio.IntBuffer;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
 
 public class CEMModelRenderer extends ModelRenderer {
@@ -100,9 +104,26 @@ public class CEMModelRenderer extends ModelRenderer {
         this.rotateAngleY = this.defaultRotateY;
         this.rotateAngleZ = this.defaultRotateZ;
 
+        this.foreignTexture = bindsTexture || (parent != null && parent.foreignTexture);
+        if (bindsTexture) markUnskippable();
+        if (!cemPart.attachments.isEmpty()) pin();
+
         for (CEMModelPart sub : cemPart.submodels) {
             cemChildren.add(new CEMModelRenderer(model, sub, textureWidth, textureHeight, this));
         }
+
+        if (parent == null && countBoxes() >= CULL_MIN_BOXES) setCullable();
+    }
+
+    private int countBoxes() {
+        int count = cemPart.boxes.size();
+        for (int i = 0; i < cemChildren.size(); i++) count += cemChildren.get(i).countBoxes();
+        return count;
+    }
+
+    private void setCullable() {
+        cullable = true;
+        for (int i = 0; i < cemChildren.size(); i++) cemChildren.get(i).setCullable();
     }
 
     public void applyAttachmentTransform(float scale) {
@@ -119,6 +140,10 @@ public class CEMModelRenderer extends ModelRenderer {
     @Nullable private float[] pivotOverride;
 
     public void setPivotOverride(@Nullable float[] pivot) {
+        if (pivot != null) {
+            markDynamic();
+            touch();
+        }
         this.pivotOverride = pivot;
     }
 
@@ -144,6 +169,7 @@ public class CEMModelRenderer extends ModelRenderer {
     }
 
     public void setTransform(@Nullable CEMPartTransform transform) {
+        if (transform != null) markDynamic();
         this.transform = transform;
     }
 
@@ -151,9 +177,20 @@ public class CEMModelRenderer extends ModelRenderer {
 
     public boolean isDeferred() { return deferredParent != null; }
 
-    public void setDeferred(@Nullable CEMModelRenderer parent) { this.deferredParent = parent; }
+    public void setDeferred(@Nullable CEMModelRenderer parent) {
+        if (parent != null) {
+            markDynamic();
+            touch();
+        }
+        this.deferredParent = parent;
+    }
 
     public void setVanillaPart(@Nullable ModelRenderer part) {
+        if (part != null) {
+            markDynamic();
+            touch();
+            if (part.childModels != null && !part.childModels.isEmpty()) markUnskippable();
+        }
         this.vanillaPart = part;
         this.deferredParent = null;
     }
@@ -185,9 +222,25 @@ public class CEMModelRenderer extends ModelRenderer {
     }
 
     public void renderWithVanilla(float scale) {
+        if (!cullable || bindsTexture) {
+            renderWithVanilla(scale, null, null);
+            return;
+        }
+        CEMTextureMask mask = CEMTextureMask.current();
+        if (renderLog != null) renderLog.add(mask, scale);
+        renderWithVanilla(scale, mask, null);
+    }
+
+    /** @param bake this part's bake for {@code mask} when the caller already holds it. */
+    private void renderWithVanilla(float scale, @Nullable CEMTextureMask mask, @Nullable Bake bake) {
         if (!this.showModel) return;
         if (vanillaPart != null && (vanillaPart.isHidden || !vanillaPart.showModel)) return;
         if (transform != null && transform.hasVisible && !transform.visible) return;
+
+        if (!bindsTexture) {
+            if (bake == null || bake.epoch != bakeEpoch || bakeDirty || compiledScale != scale) bake = bakeFor(scale, mask);
+            if (bake.empty && !unskippable) return;
+        }
 
         GlStateManager.pushMatrix();
         int previousTexture = -1;
@@ -196,6 +249,8 @@ public class CEMModelRenderer extends ModelRenderer {
             GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D, TEXTURE_BUF);
             previousTexture = TEXTURE_BUF.get(0);
             Minecraft.getMinecraft().getTextureManager().bindTexture(cemPart.texture);
+            mask = cullable ? CEMTextureMask.current() : null;
+            bake = bakeFor(scale, mask);
         }
 
         applyPivotRotationScale(scale);
@@ -210,13 +265,16 @@ public class CEMModelRenderer extends ModelRenderer {
         applyJemOffset(scale);
         applyBoundJemRotation();
 
-        // Pivot-only bones carry no boxes, don't call an empty display list for them.
-        if (hasBoxes && (transform == null || !transform.hasVisibleBoxes || transform.visibleBoxes)) {
-            renderBoxes(scale, invX, invY, invZ);
-        }
-
-        for (CEMModelRenderer child : cemChildren) {
-            child.renderWithVanilla(scale);
+        if (transform == null || !transform.hasVisibleBoxes || transform.visibleBoxes) {
+            if (bake.list >= 0) GlStateManager.callList(bake.list);
+            CEMModelRenderer[] children = bake.children;
+            for (int i = 0; i < children.length; i++) {
+                children[i].renderWithVanilla(scale, mask, bake.childBakes[i]);
+            }
+        } else {
+            for (int i = 0; i < cemChildren.size(); i++) {
+                cemChildren.get(i).renderWithVanilla(scale, mask, null);
+            }
         }
 
         if (previousTexture >= 0) GlStateManager.bindTexture(previousTexture);
@@ -408,7 +466,78 @@ public class CEMModelRenderer extends ModelRenderer {
 
     public void clearExtras() { attachedExtras.clear(); }
 
-    public void addExtra(CEMModelRenderer extra) { attachedExtras.add(extra); }
+    @Nullable private List<CEMModelRenderer> touchedList;
+    private boolean touched;
+
+    public void trackTouched(List<CEMModelRenderer> touchedList) {
+        this.touchedList = touchedList;
+    }
+
+    /** What a shared model was drawn with since the wrapper last cleared it. */
+    public static final class RenderLog {
+        public final List<CEMTextureMask> masks = new ArrayList<>();
+        public float scale;
+
+        void add(@Nullable CEMTextureMask mask, float scale) {
+            this.scale = scale;
+            if (!masks.contains(mask)) masks.add(mask);
+        }
+    }
+
+    @Nullable private RenderLog renderLog;
+
+    public void trackRenders(RenderLog renderLog) {
+        this.renderLog = renderLog;
+    }
+
+    /** Keeps this part and its ancestors animated even while they draw nothing: something else reads their pose. */
+    public void pin() {
+        if (pinned) return;
+        structureVersion++;
+        for (CEMModelRenderer r = this; r != null && !r.pinned; r = r.parentRenderer) r.pinned = true;
+    }
+
+    public static int structureVersion() {
+        return structureVersion;
+    }
+
+    /** @return true if rendering this part with {@code mask}'s texture bound would draw nothing at all. */
+    public boolean drawsNothingFor(CEMTextureMask mask, float scale) {
+        return cullable && !bindsTexture && !unskippable && !cemPart.attach && bakeFor(scale, mask).empty;
+    }
+
+    /** @return true if neither this part nor anything below it draws with any of {@code masks}. */
+    public boolean isUnusedFor(List<CEMTextureMask> masks, float scale) {
+        if (!cullable || foreignTexture || unskippable || pinned) return false;
+        for (int i = 0; i < masks.size(); i++) {
+            CEMTextureMask mask = masks.get(i);
+            if (mask == null || !bakeFor(scale, mask).empty) return false;
+        }
+        return true;
+    }
+
+    private void touch() {
+        pin();
+        if (touched || touchedList == null) return;
+        touched = true;
+        touchedList.add(this);
+    }
+
+    public void detach() {
+        vanillaPart = null;
+        deferredParent = null;
+        pivotOverride = null;
+        attachedExtras.clear();
+        touched = false;
+    }
+
+    public void addExtra(CEMModelRenderer extra) {
+        markDynamic();
+        touch();
+        markUnskippable();
+        extra.markDynamic();
+        attachedExtras.add(extra);
+    }
 
     private void renderDebugInternals(float scale) {
         String partName = cemPart.id != null ? cemPart.id : cemPart.part;
@@ -635,29 +764,209 @@ public class CEMModelRenderer extends ModelRenderer {
         GlStateManager.popMatrix();
     }
 
-    private int displayList = -1;
-    private boolean compiled;
-    private float compiledScale;
+    private static final float[] IDENTITY_POSE = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
+    private static final float[] IDENTITY_NORMAL = {1, 0, 0, 0, 1, 0, 0, 0, 1};
 
-    private void renderBoxes(float scale, boolean invX, boolean invY, boolean invZ) {
-        if (!compiled || compiledScale != scale) {
-            if (displayList >= 0) GLAllocation.deleteDisplayLists(displayList);
-            displayList = GLAllocation.generateDisplayLists(1);
-            GlStateManager.glNewList(displayList, GL11.GL_COMPILE);
-            buildBoxes(scale, invX, invY, invZ);
-            GlStateManager.glEndList();
-            compiled = true;
-            compiledScale = scale;
+    private static final int CULL_MIN_BOXES = 12;
+    private static final int MAX_BAKES = 256;
+    private static final WorldVertexBufferUploader UPLOADER = new WorldVertexBufferUploader();
+
+    private static final CEMModelRenderer[] NO_CHILDREN = new CEMModelRenderer[0];
+    private static final Bake[] NO_BAKES = new Bake[0];
+
+    private static final class Bake {
+        final int list;
+        final int epoch;
+        final boolean empty;
+        /** Animated children that draw something with this bake's texture, and their bakes (null: the child resolves its own). */
+        final CEMModelRenderer[] children;
+        final Bake[] childBakes;
+
+        Bake(int list, int epoch, boolean empty, CEMModelRenderer[] children, Bake[] childBakes) {
+            this.list = list;
+            this.epoch = epoch;
+            this.empty = empty;
+            this.children = children;
+            this.childBakes = childBakes;
         }
-        GlStateManager.callList(displayList);
     }
 
-    private void buildBoxes(float scale, boolean invX, boolean invY, boolean invZ) {
-        if (cemPart.boxes.isEmpty()) return;
+    private final List<CEMModelRenderer> liveChildren = new ArrayList<>();
+    private final List<CEMModelRenderer> staticChildren = new ArrayList<>();
+    @Nullable private IdentityHashMap<CEMTextureMask, Bake> bakes;
+    @Nullable private Long2IntOpenHashMap lists;
+    @Nullable private CEMTextureMask lastMask;
+    @Nullable private Bake lastBake;
+    private static int structureVersion;
 
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
+    private final boolean foreignTexture;
+    private boolean dynamic;
+    private boolean cullable;
+    private boolean unskippable;
+    private boolean pinned;
+    private boolean bakeDirty = true;
+    private int bakeEpoch;
+    private float compiledScale;
 
+    private void markDynamic() {
+        if (dynamic) return;
+        dynamic = true;
+        structureVersion++;
+        for (CEMModelRenderer r = this; r != null; r = r.parentRenderer) r.bakeDirty = true;
+    }
+
+    private void markUnskippable() {
+        if (unskippable) return;
+        structureVersion++;
+        for (CEMModelRenderer r = this; r != null; r = r.parentRenderer) {
+            r.unskippable = true;
+            r.bakeDirty = true;
+        }
+    }
+
+    private boolean isStaticSubtree() {
+        if (dynamic || bindsTexture || !showModel) return false;
+        for (int i = 0; i < cemChildren.size(); i++) {
+            if (!cemChildren.get(i).isStaticSubtree()) return false;
+        }
+        return true;
+    }
+
+    private Bake bakeFor(float scale, @Nullable CEMTextureMask mask) {
+        if (bakeDirty || compiledScale != scale) resetBakes(scale);
+        if (lastBake != null && lastMask == mask) return lastBake;
+
+        if (bakes == null) bakes = new IdentityHashMap<>();
+        Bake bake = bakes.get(mask);
+        if (bake == null) {
+            if (bakes.size() >= MAX_BAKES) bakes.clear();
+            bake = bake(scale, mask);
+            bakes.put(mask, bake);
+        }
+        lastMask = mask;
+        lastBake = bake;
+        return bake;
+    }
+
+    private void resetBakes(float scale) {
+        if (lists != null) {
+            for (int list : lists.values()) GLAllocation.deleteDisplayLists(list);
+            lists.clear();
+        }
+        if (bakes != null) bakes.clear();
+        lastBake = null;
+        bakeEpoch++;
+
+        liveChildren.clear();
+        staticChildren.clear();
+        for (int i = 0; i < cemChildren.size(); i++) {
+            CEMModelRenderer child = cemChildren.get(i);
+            if (child.isStaticSubtree()) staticChildren.add(child);
+            else liveChildren.add(child);
+        }
+        bakeDirty = false;
+        compiledScale = scale;
+    }
+
+    private Bake bake(float scale, @Nullable CEMTextureMask mask) {
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
+        if (hasBoxes) buildBoxes(buffer, scale, IDENTITY_POSE, IDENTITY_NORMAL, mask);
+        for (int i = 0; i < staticChildren.size(); i++) {
+            staticChildren.get(i).bakeInto(buffer, scale, IDENTITY_POSE, IDENTITY_NORMAL, mask);
+        }
+
+        int vertices = buffer.getVertexCount();
+        buffer.finishDrawing();
+        int list = -1;
+        if (vertices > 0) {
+            long hash = hash(buffer.getByteBuffer(), vertices * DefaultVertexFormats.POSITION_TEX_NORMAL.getSize());
+            if (lists == null) {
+                lists = new Long2IntOpenHashMap();
+                lists.defaultReturnValue(-1);
+            }
+            list = lists.get(hash);
+            if (list < 0) {
+                list = GLAllocation.generateDisplayLists(1);
+                GlStateManager.glNewList(list, GL11.GL_COMPILE);
+                UPLOADER.draw(buffer);
+                GlStateManager.glEndList();
+                lists.put(hash, list);
+            } else {
+                buffer.reset();
+            }
+        } else {
+            buffer.reset();
+        }
+
+        List<CEMModelRenderer> children = null;
+        List<Bake> childBakes = null;
+        for (int i = 0; i < liveChildren.size(); i++) {
+            CEMModelRenderer child = liveChildren.get(i);
+            Bake childBake = child.bindsTexture ? null : child.bakeFor(scale, mask);
+            if (childBake != null && childBake.empty && !child.unskippable) continue;
+            if (children == null) {
+                children = new ArrayList<>();
+                childBakes = new ArrayList<>();
+            }
+            children.add(child);
+            childBakes.add(childBake);
+        }
+        if (children == null) return new Bake(list, bakeEpoch, list < 0, NO_CHILDREN, NO_BAKES);
+        return new Bake(list, bakeEpoch, false, children.toArray(NO_CHILDREN), childBakes.toArray(NO_BAKES));
+    }
+
+    private static long hash(ByteBuffer data, int length) {
+        long hash = 0xCBF29CE484222325L ^ length;
+        for (int i = 0; i + 4 <= length; i += 4) {
+            hash = (hash ^ data.getInt(i)) * 0x100000001B3L;
+            hash ^= hash >>> 29;
+        }
+        return hash;
+    }
+
+    private void bakeInto(BufferBuilder buffer, float scale, float[] parentPose, float[] parentNormal, @Nullable CEMTextureMask mask) {
+        float cx = (float) Math.cos(defaultRotateX), sx = (float) Math.sin(defaultRotateX);
+        float cy = (float) Math.cos(defaultRotateY), sy = (float) Math.sin(defaultRotateY);
+        float cz = (float) Math.cos(defaultRotateZ), sz = (float) Math.sin(defaultRotateZ);
+
+        float r00 = cz * cy, r01 = cz * sy * sx - sz * cx, r02 = cz * sy * cx + sz * sx;
+        float r10 = sz * cy, r11 = sz * sy * sx + cz * cx, r12 = sz * sy * cx - cz * sx;
+        float r20 = -sy, r21 = cy * sx, r22 = cy * cx;
+
+        float scaleX = effectiveScaleX(), scaleY = effectiveScaleY(), scaleZ = effectiveScaleZ();
+        float invScaleX = scaleX == 0.0F ? 0.0F : 1.0F / scaleX;
+        float invScaleY = scaleY == 0.0F ? 0.0F : 1.0F / scaleY;
+        float invScaleZ = scaleZ == 0.0F ? 0.0F : 1.0F / scaleZ;
+
+        float tx = effectivePivotX() * scale, ty = effectivePivotY() * scale, tz = effectivePivotZ() * scale;
+
+        float[] pose = new float[12];
+        float[] normal = new float[9];
+        for (int row = 0; row < 3; row++) {
+            int p = row * 4;
+            float a = parentPose[p], b = parentPose[p + 1], c = parentPose[p + 2];
+            pose[p] = (a * r00 + b * r10 + c * r20) * scaleX;
+            pose[p + 1] = (a * r01 + b * r11 + c * r21) * scaleY;
+            pose[p + 2] = (a * r02 + b * r12 + c * r22) * scaleZ;
+            pose[p + 3] = a * tx + b * ty + c * tz + parentPose[p + 3];
+
+            int n = row * 3;
+            a = parentNormal[n];
+            b = parentNormal[n + 1];
+            c = parentNormal[n + 2];
+            normal[n] = (a * r00 + b * r10 + c * r20) * invScaleX;
+            normal[n + 1] = (a * r01 + b * r11 + c * r21) * invScaleY;
+            normal[n + 2] = (a * r02 + b * r12 + c * r22) * invScaleZ;
+        }
+
+        if (hasBoxes) buildBoxes(buffer, scale, pose, normal, mask);
+        for (int i = 0; i < cemChildren.size(); i++) {
+            cemChildren.get(i).bakeInto(buffer, scale, pose, normal, mask);
+        }
+    }
+
+    private void buildBoxes(BufferBuilder buffer, float scale, float[] pose, float[] normal, @Nullable CEMTextureMask mask) {
         for (CEMBox box : cemPart.boxes) {
             float x = box.coordinates[0];
             float y = box.coordinates[1];
@@ -710,8 +1019,6 @@ public class CEMModelRenderer extends ModelRenderer {
 
             boolean mirrorU = cemPart.mirrorTexture.contains("u");
 
-            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
-
             int texU = box.textureOffset[0];
             int texV = box.textureOffset[1];
             float texW = textureWidth;
@@ -734,14 +1041,21 @@ public class CEMModelRenderer extends ModelRenderer {
                 uvDown = mirrorUV(uvDown);
             }
 
-            if (drawNorth)  addFace(buffer, x2, y1, z1, x1, y1, z1, x1, y2, z1, x2, y2, z1, uvNorth, 0, 0, -1);
-            if (drawSouth)  addFace(buffer, x1, y1, z2, x2, y1, z2, x2, y2, z2, x1, y2, z2, uvSouth, 0, 0, 1);
-            if (drawPlusX)  addFace(buffer, x2, y1, z2, x2, y1, z1, x2, y2, z1, x2, y2, z2, uvWest, 1, 0, 0);
-            if (drawMinusX) addFace(buffer, x1, y1, z1, x1, y1, z2, x1, y2, z2, x1, y2, z1, uvEast, -1, 0, 0);
-            if (drawUp)     addFace(buffer, x1, y1, z1, x2, y1, z1, x2, y1, z2, x1, y1, z2, uvUp, 0, -1, 0);
-            if (drawDown)   addFace(buffer, x1, y2, z2, x2, y2, z2, x2, y2, z1, x1, y2, z1, uvDown, 0, 1, 0);
+            if (mask != null) {
+                drawNorth = drawNorth && mask.isVisible(uvNorth);
+                drawSouth = drawSouth && mask.isVisible(uvSouth);
+                drawPlusX = drawPlusX && mask.isVisible(uvWest);
+                drawMinusX = drawMinusX && mask.isVisible(uvEast);
+                drawUp = drawUp && mask.isVisible(uvUp);
+                drawDown = drawDown && mask.isVisible(uvDown);
+            }
 
-            tessellator.draw();
+            if (drawNorth)  addFace(buffer, pose, normal, x2, y1, z1, x1, y1, z1, x1, y2, z1, x2, y2, z1, uvNorth, 0, 0, -1);
+            if (drawSouth)  addFace(buffer, pose, normal, x1, y1, z2, x2, y1, z2, x2, y2, z2, x1, y2, z2, uvSouth, 0, 0, 1);
+            if (drawPlusX)  addFace(buffer, pose, normal, x2, y1, z2, x2, y1, z1, x2, y2, z1, x2, y2, z2, uvWest, 1, 0, 0);
+            if (drawMinusX) addFace(buffer, pose, normal, x1, y1, z1, x1, y1, z2, x1, y2, z2, x1, y2, z1, uvEast, -1, 0, 0);
+            if (drawUp)     addFace(buffer, pose, normal, x1, y1, z1, x2, y1, z1, x2, y1, z2, x1, y1, z2, uvUp, 0, -1, 0);
+            if (drawDown)   addFace(buffer, pose, normal, x1, y2, z2, x2, y2, z2, x2, y2, z1, x1, y2, z1, uvDown, 0, 1, 0);
         }
     }
 
@@ -767,14 +1081,30 @@ public class CEMModelRenderer extends ModelRenderer {
         return new float[]{uv[2], uv[1], uv[0], uv[3]};
     }
 
-    private void addFace(BufferBuilder buffer, float x1, float y1, float z1,
+    private void addFace(BufferBuilder buffer, float[] pose, float[] normal,
+                         float x1, float y1, float z1,
                          float x2, float y2, float z2,
                          float x3, float y3, float z3,
                          float x4, float y4, float z4,
                          float[] uv, float nx, float ny, float nz) {
-        buffer.pos(x1, y1, z1).tex(uv[2], uv[1]).normal(nx, ny, nz).endVertex();
-        buffer.pos(x2, y2, z2).tex(uv[0], uv[1]).normal(nx, ny, nz).endVertex();
-        buffer.pos(x3, y3, z3).tex(uv[0], uv[3]).normal(nx, ny, nz).endVertex();
-        buffer.pos(x4, y4, z4).tex(uv[2], uv[3]).normal(nx, ny, nz).endVertex();
+        float tnx = normal[0] * nx + normal[1] * ny + normal[2] * nz;
+        float tny = normal[3] * nx + normal[4] * ny + normal[5] * nz;
+        float tnz = normal[6] * nx + normal[7] * ny + normal[8] * nz;
+        float length = (float) Math.sqrt(tnx * tnx + tny * tny + tnz * tnz);
+        if (length > 0.0F) {
+            tnx /= length;
+            tny /= length;
+            tnz /= length;
+        }
+        addVertex(buffer, pose, x1, y1, z1, uv[2], uv[1], tnx, tny, tnz);
+        addVertex(buffer, pose, x2, y2, z2, uv[0], uv[1], tnx, tny, tnz);
+        addVertex(buffer, pose, x3, y3, z3, uv[0], uv[3], tnx, tny, tnz);
+        addVertex(buffer, pose, x4, y4, z4, uv[2], uv[3], tnx, tny, tnz);
+    }
+
+    private void addVertex(BufferBuilder buffer, float[] pose, float x, float y, float z, float u, float v, float nx, float ny, float nz) {
+        buffer.pos(pose[0] * x + pose[1] * y + pose[2] * z + pose[3],
+                pose[4] * x + pose[5] * y + pose[6] * z + pose[7],
+                pose[8] * x + pose[9] * y + pose[10] * z + pose[11]).tex(u, v).normal(nx, ny, nz).endVertex();
     }
 }

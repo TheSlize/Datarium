@@ -6,17 +6,24 @@ import com.slize.datarium.client.cem.expr.CEMConstantPropagation;
 import com.slize.datarium.client.cem.expr.CEMExpression;
 import com.slize.datarium.client.cem.expr.CEMExpressionParser;
 import com.slize.datarium.client.cem.expr.CEMGlobalVars;
+import com.slize.datarium.client.cem.expr.CEMPartRefs;
 import com.slize.datarium.client.cem.expr.CEMProfiler;
 import com.slize.datarium.client.cem.expr.CEMRenderVar;
 import com.slize.datarium.client.cem.expr.CEMRenderContext;
 import com.slize.datarium.client.cem.expr.CEMVarSlots;
 
+import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class CEMAnimator {
     private final CEMModel model;
     private final String name;
     private final List<CompiledAnim> entries;
+    private final List<Set<String>> entryRefs = new ArrayList<>();
+    private final Map<String, List<Integer>> writers = new HashMap<>();
+    private final Set<String> partRefs = new HashSet<>();
+    private boolean prunable = true;
 
     public CEMAnimator(CEMModel model, String name) {
         this.model = model;
@@ -47,31 +54,101 @@ public class CEMAnimator {
             CEMExpression ast = asts.get(i);
             try {
                 CompiledAnim target = CompiledAnim.forKey(key, ast);
-                if (target != null) entries.add(target);
+                if (target == null) continue;
+                Set<String> refs = new HashSet<>();
+                if (!CEMPartRefs.collect(ast, refs)) prunable = false;
+                if (target.kind == TargetKind.PART) writers.computeIfAbsent(target.fullKey, _ -> new ArrayList<>()).add(entries.size());
+                entries.add(target);
+                entryRefs.add(refs);
+                partRefs.addAll(refs);
             } catch (Exception e) {
                 DatariumMain.LOGGER.warn("[CEM] Failed to compile expression: {}", key, e);
             }
         }
     }
 
+    /** Every "part.property" this model's expressions read. */
+    public Set<String> partRefs() {
+        return partRefs;
+    }
+
+    /**
+     * Entries that still have to run when the parts matched by {@code partUnused} draw nothing:
+     * everything that is not a part target, the remaining parts, and whatever those read.
+     *
+     * @return null when nothing can be skipped.
+     */
+    @Nullable
+    public int[] prune(Predicate<String> partUnused, Collection<String> externalRefs) {
+        if (!prunable) return null;
+        int n = entries.size();
+        boolean[] keep = new boolean[n];
+        ArrayDeque<Integer> queue = new ArrayDeque<>();
+        Map<String, Boolean> unused = new HashMap<>();
+
+        for (int i = 0; i < n; i++) {
+            CompiledAnim e = entries.get(i);
+            if (e.kind == TargetKind.PART && unused.computeIfAbsent(e.partId, partUnused::test)) continue;
+            keep[i] = true;
+            queue.add(i);
+        }
+        for (String ref : externalRefs) keepWriters(ref, keep, queue);
+        while (!queue.isEmpty()) {
+            for (String ref : entryRefs.get(queue.poll())) keepWriters(ref, keep, queue);
+        }
+
+        int count = 0;
+        for (boolean k : keep) if (k) count++;
+        if (count == n) return null;
+        int[] out = new int[count];
+        for (int i = 0, o = 0; i < n; i++) if (keep[i]) out[o++] = i;
+        return out;
+    }
+
+    /** Parts written by the entries of a {@link #prune} result. */
+    public Set<String> partIds(int[] subset) {
+        Set<String> parts = new LinkedHashSet<>();
+        for (int index : subset) {
+            CompiledAnim e = entries.get(index);
+            if (e.kind == TargetKind.PART) parts.add(e.partId);
+        }
+        return parts;
+    }
+
+    private void keepWriters(String ref, boolean[] keep, ArrayDeque<Integer> queue) {
+        List<Integer> indices = writers.get(ref);
+        if (indices == null) return;
+        for (int index : indices) {
+            if (keep[index]) continue;
+            keep[index] = true;
+            queue.add(index);
+        }
+    }
+
     public void evaluate(CEMRenderContext ctx, Map<String, CEMPartTransform> transforms) {
+        evaluate(ctx, transforms, null);
+    }
+
+    /** @param subset entry indices from {@link #prune}, null for all of them. */
+    public void evaluate(CEMRenderContext ctx, Map<String, CEMPartTransform> transforms, @Nullable int[] subset) {
         if (!CEMApiState.hasHooks()) {
-            evaluateEntries(ctx, transforms);
+            evaluateEntries(ctx, transforms, subset);
             return;
         }
         Object subject = ctx.getRenderedObject();
         boolean allowed = CEMApiState.startAnimation(subject, name);
         try {
-            if (allowed) evaluateEntries(ctx, transforms);
+            if (allowed) evaluateEntries(ctx, transforms, null);
         } finally {
             CEMApiState.endAnimation(subject, name, !allowed);
         }
     }
 
-    private void evaluateEntries(CEMRenderContext ctx, Map<String, CEMPartTransform> transforms) {
+    private void evaluateEntries(CEMRenderContext ctx, Map<String, CEMPartTransform> transforms, @Nullable int[] subset) {
         boolean profiling = CEMProfiler.enabled;
-        for (int i = 0, n = entries.size(); i < n; i++) {
-            CompiledAnim e = entries.get(i);
+        if (profiling) subset = null;
+        for (int i = 0, n = subset != null ? subset.length : entries.size(); i < n; i++) {
+            CompiledAnim e = entries.get(subset != null ? subset[i] : i);
 
             try {
                 double value = profiling ? e.expr.evaluate(ctx) : e.fast.eval(ctx);

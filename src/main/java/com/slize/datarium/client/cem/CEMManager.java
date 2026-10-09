@@ -129,6 +129,7 @@ public class CEMManager {
         CEMArmorModels.invalidate();
         PackConverter.invalidate();
         CEMGenericRender.invalidateTextures();
+        CEMTextureMask.invalidate();
         CEMGlobalVars.clear();
     }
 

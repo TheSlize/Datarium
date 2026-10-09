@@ -80,6 +80,10 @@ public final class CEMGenericRender {
     }
 
     @Nullable private static Session active;
+
+    public static boolean inSession() {
+        return active != null;
+    }
     private static int inHandDepth;
     private static int onHeadDepth;
     private static int inItemFrameDepth;

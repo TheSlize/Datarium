@@ -1,0 +1,30 @@
+name: Release (prod)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version-type:
+        description: Release channel
+        type: choice
+        default: beta
+        options:
+          - release
+          - beta
+          - alpha
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-prod
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-common.yml
+    with:
+      publish: true
+      version-type: ${{ inputs.version-type }}
+    secrets:
+      CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}

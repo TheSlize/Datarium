@@ -1,0 +1,155 @@
+name: Release pipeline
+
+on:
+  workflow_call:
+    inputs:
+      publish:
+        type: boolean
+        required: true
+      version-type:
+        type: string
+        default: beta
+    secrets:
+      CURSEFORGE_TOKEN:
+        required: false
+      MODRINTH_TOKEN:
+        required: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      CURSEFORGE_PROJECT_ID: ${{ vars.CURSEFORGE_PROJECT_ID }}
+      MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        env:
+          PUBLISH: ${{ inputs.publish }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          VERSION=$(grep -E '^\s*mod_version\s*=' gradle.properties | head -n1 | cut -d'=' -f2- | tr -d '[:space:]')
+          MOD_ID=$(grep -E '^\s*mod_id\s*=' gradle.properties | head -n1 | cut -d'=' -f2- | tr -d '[:space:]')
+          MOD_NAME=$(grep -E '^\s*mod_name\s*=' gradle.properties | head -n1 | cut -d'=' -f2- | sed -E 's/^\s+|\s+$//g')
+          if [ -z "$VERSION" ] || [ -z "$MOD_ID" ]; then
+            echo "::error::Could not resolve mod_version/mod_id from gradle.properties"
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/$VERSION" >/dev/null; then
+            if [ "$PUBLISH" = "true" ]; then
+              echo "::error::Tag $VERSION already exists, bump mod_version in gradle.properties"
+              exit 1
+            fi
+            echo "::warning::Tag $VERSION already exists, a prod run would fail until mod_version is bumped"
+          fi
+          if [ "$PUBLISH" = "true" ]; then
+            if [ "$GITHUB_REF_NAME" != "$DEFAULT_BRANCH" ]; then
+              echo "::error::Prod releases must be run from $DEFAULT_BRANCH, got $GITHUB_REF_NAME"
+              exit 1
+            fi
+            if [ -z "$CURSEFORGE_PROJECT_ID" ] || [ -z "$MODRINTH_PROJECT_ID" ]; then
+              echo "::error::Repository variables CURSEFORGE_PROJECT_ID and MODRINTH_PROJECT_ID must be set"
+              exit 1
+            fi
+          fi
+          {
+            echo "version=$VERSION"
+            echo "mod_id=$MOD_ID"
+            echo "mod_name=$MOD_NAME"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: 9.5.0
+
+      - name: Add permission
+        run: chmod +x ./gradlew
+
+      - name: Execute Gradle build
+        run: ./gradlew build
+
+      - name: Verify artifact
+        id: artifact
+        env:
+          JAR: build/libs/${{ steps.version.outputs.mod_id }}-${{ steps.version.outputs.version }}.jar
+        run: |
+          if [ ! -f "$JAR" ]; then
+            echo "::error::Expected artifact $JAR was not produced"
+            ls -1 build/libs >&2
+            exit 1
+          fi
+          echo "jar=$JAR" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog
+        id: changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          PREVIOUS=$(gh release list --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName // empty')
+          if [ -n "$PREVIOUS" ] && git rev-parse -q --verify "refs/tags/$PREVIOUS" >/dev/null; then
+            RANGE="$PREVIOUS..HEAD"
+          else
+            PREVIOUS=""
+            RANGE="HEAD"
+          fi
+          CHANGELOG="$RUNNER_TEMP/CHANGELOG.md"
+          git log --no-merges --format='%b' "$RANGE" \
+            | tr -d '\r' \
+            | sed -E '/^(co-authored-by|signed-off-by):/Id; /^[[:space:]]*$/d' > "$CHANGELOG"
+          if [ ! -s "$CHANGELOG" ]; then
+            echo "No changelog provided." > "$CHANGELOG"
+          fi
+          echo "file=$CHANGELOG" >> "$GITHUB_OUTPUT"
+          {
+            echo "## $VERSION"
+            echo
+            echo "Changes since: \`${PREVIOUS:-the first commit}\`"
+            echo
+            cat "$CHANGELOG"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.version.outputs.mod_id }}-${{ steps.version.outputs.version }}
+          path: |
+            ${{ steps.artifact.outputs.jar }}
+            ${{ steps.changelog.outputs.file }}
+
+      - name: Publish
+        if: ${{ inputs.publish }}
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ env.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          curseforge-name: ${{ steps.version.outputs.mod_name }} 1.12.2-${{ steps.version.outputs.version }}
+
+          modrinth-id: ${{ env.MODRINTH_PROJECT_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-name: ${{ steps.version.outputs.version }}
+
+          github-token: ${{ github.token }}
+          github-tag: ${{ steps.version.outputs.version }}
+          github-name: ${{ steps.version.outputs.version }}
+          github-commitish: ${{ github.sha }}
+          github-prerelease: ${{ inputs.version-type != 'release' }}
+
+          files: ${{ steps.artifact.outputs.jar }}
+          version: ${{ steps.version.outputs.version }}
+          version-type: ${{ inputs.version-type }}
+          changelog-file: ${{ steps.changelog.outputs.file }}
+          game-versions: 1.12.2
+          loaders: forge
+          java: 25

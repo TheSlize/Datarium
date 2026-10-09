@@ -108,7 +108,8 @@ jobs:
           CHANGELOG="$RUNNER_TEMP/CHANGELOG.md"
           git log --no-merges --format='%b' "$RANGE" \
             | tr -d '\r' \
-            | sed -E '/^(co-authored-by|signed-off-by):/Id; /^[[:space:]]*$/d' > "$CHANGELOG"
+            | sed -E '/^(co-authored-by|signed-off-by):/Id; /^[[:space:]]*$/d' \
+            | LC_ALL=C sort -f > "$CHANGELOG"
           if [ ! -s "$CHANGELOG" ]; then
             echo "No changelog provided." > "$CHANGELOG"
           fi
